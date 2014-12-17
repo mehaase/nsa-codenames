@@ -1,4 +1,4 @@
-import ConfigParser
+import configparser
 import os
 
 """
@@ -29,4 +29,4 @@ an optional, user-controlled file that can be used to customize a
 local deployment.
 """
 def merge_config_files(*paths):
-    return ConfigParser.ConfigParser().read(paths)
+    return configparser.ConfigParser().read(paths)
