@@ -1,2 +1,7 @@
+# deps
 apache2
 libapache2-mod-wsgi-py3
+
+# build deps
+curl
+unzip

@@ -20,6 +20,7 @@ def bootstrap():
         static_folder=app.config.get_path("static"),
         template_folder=app.config.get_path("templates")
     )
+
     config = app.config.get_config()
 
     init_flask(flask_app, config)
