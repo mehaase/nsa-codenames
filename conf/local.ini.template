@@ -1,0 +1,6 @@
+[flask]
+; Configuration items for Flask.
+; See: http://flask.pocoo.org/docs/0.10/config/
+
+; Set the secret key to a long, random string that is unique to this site.
+SECRET_KEY = ##SECRET_KEY##
