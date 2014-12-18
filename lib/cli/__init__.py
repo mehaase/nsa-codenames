@@ -2,11 +2,11 @@ import argparse
 
 import app.config
 
-""" Base class for CLI scripts. """
 class BaseCli:
+    """ Base class for CLI scripts. """
 
-    """ Parse command line arguments. """
     def get_args(self):
+        """ Parse command line arguments. """
         arg_parser = argparse.ArgumentParser(description=self.__class__.__doc__)
 
         arg_parser.add_argument(
@@ -19,15 +19,20 @@ class BaseCli:
 
         return arg_parser.parse_args()
 
-    """ The main entry point for all scripts. """
     def run(self):
+        """ The main entry point for all scripts. """
+
         self._run(self.get_args(), app.config.get_config())
 
-    """ Subclasses may override _get_args() to customize argument parser. """
     def _get_args(self, arg_parser):
+        """
+        Subclasses may override _get_args() to customize argument parser.
+        """
+
         pass
 
-    """ Subclasses should override _run() to do their work. """
     def _run(self, args, config):
+        """ Subclasses should override _run() to do their work. """
+
         raise NotImplementedError()
 

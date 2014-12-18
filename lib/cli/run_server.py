@@ -1,11 +1,11 @@
 import app
 import cli
 
-""" A tool for running a development server. """
 class RunServer(cli.BaseCli):
+    """ A tool for running a development server. """
 
-    """ Customize arguments. """
     def _get_args(self, arg_parser):
+        """ Customize arguments. """
 
         arg_parser.add_argument(
             '--ip',
@@ -13,11 +13,11 @@ class RunServer(cli.BaseCli):
             help='Specify an IP address to bind to. (Defaults to loopback.)'
         )
 
-    """ Main entry point. """
     def _run(self, args, config):
+        """ Main entry point. """
 
-        flask_app = app.bootstrap()
+        flask_app = app.bootstrap(debug=args.debug)
 
         # Disable secure cookies for the development server.
         flask_app.config["SESSION_COOKIE_SECURE"] = False
-        flask_app.run(host=args.ip, debug=args.debug)
+        flask_app.run(host=args.ip)

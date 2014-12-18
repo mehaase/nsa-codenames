@@ -1,2 +1,4 @@
+cssmin
 flask
+Flask-Assets
 Flask-Failsafe

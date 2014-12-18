@@ -11,5 +11,8 @@ curl $DART_URL > dart-sdk.zip
 unzip dart-sdk.zip
 find /opt/dart-sdk/bin/ -type f -executable -exec echo ln -s {} /usr/local/bin/ \;
 
+# Node setup.
+ln -s /usr/bin/nodejs /usr/local/bin/node
+
 # Security setup.
 useradd nsa_codenames
