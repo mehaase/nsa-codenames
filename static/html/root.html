@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html ng-app>
+  <head>
+    <title>NSA:Codenames</title>
+    [% assets "less_all" -%]
+    <link rel="stylesheet" type="text/css" href="[[ASSET_URL]]">
+    [% endassets -%]
+    [% assets "js_all" -%]
+    <script type="text/javascript" src="[[ASSET_URL]]"></script>
+    [% endassets -%]
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12">
+          <nav class="navbar navbar-default"></nav>
+          <ng-view></ng-view>
+
+          <script type="application/dart" src="/static/dart/main.dart"></script>
+          <script type="text/javascript" src="/static/dart/packages/browser/dart.js"></script>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
