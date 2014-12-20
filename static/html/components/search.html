@@ -1,0 +1,7 @@
+<input id='query'
+       ng-model='query'
+       placeholder='Enter some search terms…'>
+<button class='btn btn-primary'>Search</button>
+
+<h2>{{results.length}} matching codenames…</h2>
+<codename-result ng-repeat='codename in results' codename='codename'></codename-result>

@@ -6,20 +6,24 @@ void routeInitializer(Router router, RouteViewFactory views) {
   views.configure({
     'about': ngRoute(
         path: '/about',
-        view: '/static/html/about.html'
+        view: '/static/html/views/about.html'
     ),
     'home': ngRoute(
         defaultRoute: true,
         path: '/',
-        view: '/static/html/home.html'
+        view: '/static/html/views/home.html'
     ),
     'index': ngRoute(
         path: '/index',
-        view: '/static/html/index.html'
+        view: '/static/html/views/index.html'
     ),
     'search': ngRoute(
         path: '/search',
-        view: '/static/html/search.html'
+        view: '/static/html/views/search.html'
+    ),
+    'codename': ngRoute(
+        path: '/cn/:codename',
+        view: '/static/html/views/codename.html'
     ),
   });
 }
@@ -61,26 +65,119 @@ class CurrentRoute {
     }
 }
 
-class MyAppModule extends Module {
-    MyAppModule() {
+class NsaCodenamesAppModule extends Module {
+    NsaCodenamesAppModule() {
+        bind(CodenameComponent);
+        bind(CodenameResultComponent);
         bind(CurrentRoute);
+        bind(IndexComponent);
         bind(NavComponent);
+        bind(SearchComponent);
         bind(RouteInitializerFn, toValue: routeInitializer);
         bind(NgRoutingUsePushState, toValue: new NgRoutingUsePushState.value(false));
     }
 }
 
 @Component(
+    selector: 'codename',
+    templateUrl: '/static/html/components/codename.html',
+    useShadowDom: false
+)
+class CodenameComponent {
+    @NgOneWay('codename')
+    Codename codename;
+    String tempName;
+
+    CodenameComponent(RouteProvider rp) {
+        tempName = rp.parameters['codename'];
+        codename = new Codename("AGGRAVATED AVATAR", 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed enim ipsum, pulvinar quis malesuada vel, consequat at ex. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Suspendisse in volutpat lacus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nunc eu tristique arcu. Proin placerat turpis justo. Nunc lacinia tempus augue.');
+    }
+}
+
+@Component(
+    selector: 'codename-result',
+    templateUrl: '/static/html/components/codename-result.html',
+    useShadowDom: false
+)
+class CodenameResultComponent {
+    @NgOneWay('codename')
+    Codename codename;
+}
+
+class Codename {
+    String id;
+    String name;
+    String description;
+
+    Codename(this.name, this.description);
+}
+
+@Component(
     selector: 'nav',
-    templateUrl: '/static/html/nav.html',
+    templateUrl: '/static/html/components/nav.html',
     useShadowDom: false
 )
 class NavComponent {
 
 }
 
+@Component(
+    selector: 'index',
+    templateUrl: '/static/html/components/index.html',
+    useShadowDom: false
+)
+class IndexComponent {
+    List<String> letters;
+    Map<String, List<String>> codenamesByInitial;
+
+    IndexComponent() {
+        letters = new List<String>.generate(
+            26,
+            (int index) => new String.fromCharCode(index + 0x41)
+        );
+
+        codenamesByInitial = new Map.fromIterable(
+            letters,
+            key: (item) => item,
+            value: (item) => new List<String>()
+        );
+
+        codenamesByInitial['A'].add('AGGRAVATED AVATAR');
+        codenamesByInitial['A'].add('AMUSED BOUCHE');
+        codenamesByInitial['B'].add('BORED BOXER');
+        codenamesByInitial['D'].add('DULL DANDRUFF');
+        codenamesByInitial['Z'].add('ZEALOUS ZEBRA');
+    }
+
+    void scroll(String letter) {
+        var element = querySelector("#" + letter);
+        print(element);
+        element.scrollIntoView(ScrollAlignment.TOP);
+    }
+}
+
+@Component(
+    selector: 'search',
+    templateUrl: '/static/html/components/search.html',
+    useShadowDom: false
+)
+class SearchComponent {
+    String query;
+    List<Codename> results;
+
+    SearchComponent() {
+        results = new List<Codename>();
+
+        results.add(new Codename("AGGRAVATED AVATAR", 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed enim ipsum, pulvinar quis malesuada vel, consequat at ex. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Suspendisse in volutpat lacus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nunc eu tristique arcu. Proin placerat turpis justo. Nunc lacinia tempus augue.'));
+        results.add(new Codename("AMUSED BOUCHE", 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed enim ipsum, pulvinar quis malesuada vel, consequat at ex. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Suspendisse in volutpat lacus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nunc eu tristique arcu. Proin placerat turpis justo. Nunc lacinia tempus augue.'));
+        results.add(new Codename("BORED BOXER", 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed enim ipsum, pulvinar quis malesuada vel, consequat at ex. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Suspendisse in volutpat lacus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nunc eu tristique arcu. Proin placerat turpis justo. Nunc lacinia tempus augue.'));
+        results.add(new Codename("DULL DANDRUFF", 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed enim ipsum, pulvinar quis malesuada vel, consequat at ex. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Suspendisse in volutpat lacus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nunc eu tristique arcu. Proin placerat turpis justo. Nunc lacinia tempus augue.'));
+        results.add(new Codename("ZEALOUS ZEBRA", 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed enim ipsum, pulvinar quis malesuada vel, consequat at ex. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Suspendisse in volutpat lacus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nunc eu tristique arcu. Proin placerat turpis justo. Nunc lacinia tempus augue.'));
+    }
+}
+
 void main() {
     applicationFactory()
-        .addModule(new MyAppModule())
+        .addModule(new NsaCodenamesAppModule())
         .run();
 }

@@ -56,6 +56,11 @@ def init_flask(app, config):
     config_dict = dict(config.items('flask'))
     flask_app.config.update(**config_dict)
 
+    # Disable caching for static assets in debug mode, otherwise
+    # many Angular templates will be stale when refreshing pages.
+    if app.debug:
+        flask_app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
+
 def init_flask_assets(app, config):
     """ Initialize Flask-Assets extension. """
 

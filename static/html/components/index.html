@@ -1,0 +1,12 @@
+<p id="index">
+  <span ng-repeat="letter in letters">
+    <a ng-click="scroll(letter)">{{letter}}</a>&nbsp;
+    <span ng-if="!$last">|&nbsp;</span>
+  </span>
+</p>
+<div ng-repeat="letter in letters">
+  <h2 id="{{letter}}">{{letter}}</h2>
+  <ul>
+    <li ng-repeat="codename in codenamesByInitial[letter]">{{codename}}</li>
+  </ul>
+</div>
