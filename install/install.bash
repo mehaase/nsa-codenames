@@ -16,3 +16,6 @@ ln -s /usr/bin/nodejs /usr/local/bin/node
 
 # Security setup.
 useradd nsa_codenames
+
+# Database setup.
+echo "CREATE SCHEMA nsa_codenames CHARACTER SET utf8 COLLATE utf8_unicode_ci" | mysql -u root -ppassword;

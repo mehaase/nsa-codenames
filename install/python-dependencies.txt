@@ -1,6 +1,8 @@
 cssmin
 flask
 Flask-Assets
+flask-classy
 Flask-Failsafe
 PyMySQL
+python-slugify
 SQLAlchemy

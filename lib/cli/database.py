@@ -15,7 +15,7 @@ class Database(cli.BaseCli):
 
         about = Content('about')
         about.markdown = dedent('''
-            ## Motivation
+            ## Motivation ☺
 
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed porta
             sagittis mi a faucibus. Etiam lacinia id ex eu accumsan. Duis at

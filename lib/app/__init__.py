@@ -36,6 +36,7 @@ def bootstrap(debug=False):
     if flask_app is not None:
         return flask_app
 
+    # Initialize Flask.
     flask_app = MyFlask(
         __name__,
         static_folder=app.config.get_path("static"),
@@ -45,25 +46,46 @@ def bootstrap(debug=False):
 
     config = app.config.get_config()
 
+    # Run the bootstrap.
     init_flask(flask_app, config)
     init_flask_assets(flask_app, config)
     init_views(flask_app, config)
 
     return flask_app
 
-def init_flask(app, config):
-    """ Initialize Flask configuration. """
+def init_flask(flask_app, config):
+    """ Initialize Flask configuration and hooks. """
 
     config_dict = dict(config.items('flask'))
     flask_app.config.update(**config_dict)
-    g.db = app.database.get_engine()
 
     # Disable caching for static assets in debug mode, otherwise
     # many Angular templates will be stale when refreshing pages.
-    if app.debug:
+    if flask_app.debug:
         flask_app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
 
-def init_flask_assets(app, config):
+    @flask_app.after_request
+    def after_request(response):
+        ''' Clean up request context. '''
+
+        g.db.close()
+
+        return response
+
+    @flask_app.before_request
+    def before_request():
+        ''' Initialize request context. '''
+
+        engine = app.database.get_engine(dict(config.items('database')))
+        g.db = app.database.get_session(engine)
+
+    @flask_app.before_first_request
+    def before_first_request():
+        ''' Initialize application context. '''
+
+        g.debug = flask_app.debug
+
+def init_flask_assets(flask_app, config):
     """ Initialize Flask-Assets extension. """
 
     assets = Environment(flask_app)
@@ -87,7 +109,10 @@ def init_flask_assets(app, config):
 
     assets.register("js_all", js)
 
-def init_views(app, config):
+def init_views(flask_app, config):
     """ Initialize views. """
 
-    import app.views.index
+    # import app.views.index
+
+    import app.views.codename
+    app.views.codename.CodenameView.register(flask_app, route_base='/')

@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from slugify import slugify
 from sqlalchemy import Column, DateTime, Integer, String, Text
 from sqlalchemy.orm import relationship, backref
 
@@ -14,6 +15,7 @@ class Codename(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(255), unique=True)
+    slug = Column(String(255), unique=True)
     description = Column(Text)
     added = Column(DateTime)
     updated = Column(DateTime)
@@ -25,5 +27,6 @@ class Codename(Base):
         ''' Constructor. '''
 
         self.name = name
+        self.slug = slugify(name)
         self.added = datetime.today()
         self.updated = datetime.today()

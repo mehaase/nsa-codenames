@@ -11,7 +11,7 @@ def get_engine(config, debug=False):
 
     if _engine is None:
         connect_string = 'mysql+pymysql://%(username)s:%(password)s@' \
-                         '%(host)s/%(schema)s'
+                         '%(host)s/%(schema)s?charset=utf8'
 
         _engine = sqlalchemy.create_engine(connect_string % config, echo=debug)
         _sessionmaker = sessionmaker(bind=_engine)
@@ -19,7 +19,11 @@ def get_engine(config, debug=False):
     return _engine
 
 def get_session(engine):
-    ''' Get a SQLAlchemy session. '''
+    '''
+    Get a SQLAlchemy session.
+
+    This uses SQLAlchemy's thread-safe API, scoped_session.
+    '''
 
     global _sessionmaker
 
