@@ -2,3 +2,5 @@ cssmin
 flask
 Flask-Assets
 Flask-Failsafe
+PyMySQL
+SQLAlchemy

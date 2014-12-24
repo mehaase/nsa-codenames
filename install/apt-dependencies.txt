@@ -1,6 +1,7 @@
 # deps
 apache2
 libapache2-mod-wsgi-py3
+mariadb-server
 node
 npm
 

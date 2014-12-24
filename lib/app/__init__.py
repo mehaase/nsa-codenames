@@ -1,10 +1,11 @@
 """ The main application package. """
 
-from flask import Flask
+from flask import Flask, g
 from flask.ext.assets import Environment, Bundle
 from flask_failsafe import failsafe
 
 import app.config
+import app.database
 
 flask_app = None
 
@@ -55,6 +56,7 @@ def init_flask(app, config):
 
     config_dict = dict(config.items('flask'))
     flask_app.config.update(**config_dict)
+    g.db = app.database.get_engine()
 
     # Disable caching for static assets in debug mode, otherwise
     # many Angular templates will be stale when refreshing pages.
