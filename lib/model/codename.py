@@ -16,17 +16,29 @@ class Codename(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(255), unique=True)
     slug = Column(String(255), unique=True)
+    summary = Column(Text)
     description = Column(Text)
     added = Column(DateTime)
     updated = Column(DateTime)
 
-    references = relationship('Reference')
-    images = relationship('Image')
+    references = relationship(
+        'Reference',
+        backref='codename',
+        cascade='all,delete-orphan'
+    )
+
+    images = relationship(
+        'Image',
+        backref='codename',
+        cascade='all,delete-orphan'
+    )
 
     def __init__(self, name):
         ''' Constructor. '''
 
         self.name = name
         self.slug = slugify(name)
+        self.summary = ''
+        self.description = ''
         self.added = datetime.today()
         self.updated = datetime.today()

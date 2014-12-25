@@ -112,7 +112,10 @@ def init_flask_assets(flask_app, config):
 def init_views(flask_app, config):
     """ Initialize views. """
 
-    # import app.views.index
+    import app.views.angular
 
-    import app.views.codename
-    app.views.codename.CodenameView.register(flask_app, route_base='/')
+    from app.views.codename import CodenameView
+    CodenameView.register(flask_app, route_base='/')
+
+    from app.views.content import ContentView
+    ContentView.register(flask_app, route_base='/content')

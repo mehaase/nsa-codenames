@@ -21,4 +21,5 @@ class Content(Base):
         ''' Constructor. '''
 
         self.name = name
+        self.markdown = ''
         self.updated = datetime.today()

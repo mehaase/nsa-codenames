@@ -17,16 +17,29 @@ class Database(cli.BaseCli):
         about.markdown = dedent('''
             ## Motivation ☺
 
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed porta
-            sagittis mi a faucibus. Etiam lacinia id ex eu accumsan. Duis at
-            venenatis tortor, nec ultricies enim.
+            This site was inspired by the colorful codenames used for various
+            NSA programs. The codenames evoke vivid imagery, and the they are
+            perfectly suited for vivid, crowd-sourced illustrations.
 
-            Duis posuere faucibus
-            efficitur. Aenean facilisis nibh diam, ac porttitor dui tempus
-            vitae. Curabitur consequat, quam quis imperdiet pretium, ex diam
-            condimentum sem, sit amet feugiat magna lorem quis tellus.
+            Our motive is to provide a comprehensive and useful database for
+            American taxpayers to understand and analyze the intelligence
+            programs that they pay for. In order to open this information up as
+            much as possible, this site also features an API that enables
+            programmatic access to our curated dataset.
 
-            Integer blandit metus nunc, vitae blandit justo condimentum sed.
+            We place equal emphasis on whimsy and practicality; amusement and
+            information. As you browse this site, we hope you'll laugh and
+            cringe at alternating moments.
+
+            ## Under The Hood
+
+            This site is built as a single page application (SPA) with
+            [Angular Dart](https://angulardart.org/)
+            using a [Bootwatch theme](http://bootswatch.com/journal/).
+            This SPA supports deep links and
+            [search engine spiders](https://developers.google.com/webmasters/ajax-crawling/docs/getting-started).
+            The server side is written in Python using
+            [the Flask microframework](http://flask.pocoo.org/).
         ''')
         session.add(about)
 
@@ -38,6 +51,10 @@ class Database(cli.BaseCli):
         session = app.database.get_session(self._db)
 
         aggravated_avatar = Codename("AGGRAVATED AVATAR")
+        aggravated_avatar.summary = dedent('''
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed porta
+            sagittis mi a faucibus.
+        ''')
         aggravated_avatar.description = dedent('''
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed porta
             sagittis mi a faucibus. Etiam lacinia id ex eu accumsan. Duis at
@@ -56,6 +73,10 @@ class Database(cli.BaseCli):
         session.add(aggravated_avatar)
 
         amused_bouche = Codename("AMUSED BOUCHE")
+        amused_bouche.summary = dedent('''
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed porta
+            sagittis mi a faucibus.
+        ''')
         amused_bouche.description = dedent('''
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed porta
             sagittis mi a faucibus.
@@ -70,6 +91,10 @@ class Database(cli.BaseCli):
         session.add(amused_bouche)
 
         bored_boxer = Codename("BORED BOXER")
+        bored_boxer.summary = dedent('''
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed porta
+            sagittis mi a faucibus.
+        ''')
         bored_boxer.description = dedent('''
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed porta
             sagittis mi a faucibus. Etiam lacinia id ex eu accumsan. Duis at
