@@ -1,7 +1,25 @@
 <input id='query'
        ng-model='query'
-       placeholder='Enter some search terms…'>
-<button class='btn btn-primary'>Search</button>
+       ng-keyup='handleKeypress($event)'
+       placeholder='Enter some search terms…'
+       autofocus>
+<button class='btn btn-primary' ng-click='search()'>Search</button>
+<img class='spinner hide' src="/static/img/spinner.gif">
 
-<h2>{{results.length}} matching codenames…</h2>
+<div class="alert"
+     ng-class='{"alert-info": status=="noQuery",
+                "alert-danger": status=="queryHasNoResults",
+                "alert-success": status=="queryHasResults"}'>
+  <p ng-show='status=="noQuery"'>
+    Search for codenames by typing one or more keywords.
+  </p>
+  <p ng-show='status=="queryHasNoResults"'>
+    <strong>Nothing found!</strong> No codenames match your query. Please try
+    searching for something else.
+  </p>
+  <p ng-show='status=="queryHasResults"'>
+    Found {{results.length}} codename matching '{{lastQuery}}'…
+  </p>
+</div>
+
 <codename-result ng-repeat='codename in results' codename='codename'></codename-result>

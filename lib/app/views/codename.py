@@ -78,6 +78,7 @@ class CodenameView(FlaskView):
 
         codename_json = {
             'name': codename.name,
+            'slug': codename.slug,
             'summary': codename.summary,
             'description': codename.description,
             'added': date_to_timestamp(codename.added),
@@ -171,6 +172,7 @@ class CodenameView(FlaskView):
         for codename in codenames:
             codename_json = {
                 'name': codename.name,
+                'slug': codename.slug,
                 'summary': codename.summary,
                 'url': url_for('CodenameView:get', slug=codename.slug)
             }
@@ -296,7 +298,7 @@ class CodenameView(FlaskView):
 
     @route('/search')
     def search(self):
-        ''' Perform a keyword search of codenames. '''
+        ''' Perform a keyword search of names and summaries. '''
 
         query = request.args.get('q', '').strip()
 
@@ -306,8 +308,7 @@ class CodenameView(FlaskView):
         codenames = g.db.query(Codename) \
                         .filter(
                             Codename.name.like('%{0}%'.format(query)) |
-                            Codename.summary.like('%{0}%'.format(query)) |
-                            Codename.description.like('%{0}%'.format(query))
+                            Codename.summary.like('%{0}%'.format(query))
                         )
 
         codenames_json = list()
@@ -315,6 +316,7 @@ class CodenameView(FlaskView):
         for codename in codenames:
             codename_json = {
                 'name': codename.name,
+                'slug': codename.slug,
                 'summary': codename.summary,
                 'url': url_for('CodenameView:get', slug=codename.slug)
             }

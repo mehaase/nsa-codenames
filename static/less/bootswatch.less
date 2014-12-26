@@ -18,7 +18,24 @@
   }
 }
 
+// Angular ====================================================================
+
+.ng-hide {
+  display: none;
+}
+
+// Custom transitions =========================================================
+
+div.alert {
+  transition: all 1500ms ease;
+}
+
 // Codename ===================================================================
+codename-result {
+  display: block;
+  clear: both;
+}
+
 codename img {
   margin: 1em 0em;
 }
@@ -35,6 +52,12 @@ search input#query {
   font-size: 14pt;
   padding-left: 0.6em;
   margin-right: 0.75em;
+  margin-bottom: 1em;
+}
+
+search img.spinner {
+  position: relative;
+  left: -7.7em;
 }
 
 search codename-result {

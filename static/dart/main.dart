@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:html';
 import 'package:angular/angular.dart';
 import 'package:angular/application_factory.dart';
@@ -78,6 +80,24 @@ class NsaCodenamesAppModule extends Module {
     }
 }
 
+class Codename {
+    String name, slug, summary, description;
+    DateTime added, updated;
+    // List<Image> images;
+    // List<Reference> references;
+
+    Codename.old(this.name, this.description);
+
+    Codename(Map json) {
+        this.name = json['name'];
+        this.slug = json['slug'];
+        this.summary = json['summary'];
+        this.description = json['description'];
+        // this.added = new DateTime.fromMillisecondsSinceEpoch(json['added']);
+        // this.updated = new DateTime.fromMillisecondsSinceEpoch(json['updated']);
+    }
+}
+
 @Component(
     selector: 'codename',
     templateUrl: '/static/html/components/codename.html',
@@ -86,11 +106,22 @@ class NsaCodenamesAppModule extends Module {
 class CodenameComponent {
     @NgOneWay('codename')
     Codename codename;
-    String tempName;
 
     CodenameComponent(RouteProvider rp) {
-        tempName = rp.parameters['codename'];
-        codename = new Codename("AGGRAVATED AVATAR", 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed enim ipsum, pulvinar quis malesuada vel, consequat at ex. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Suspendisse in volutpat lacus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nunc eu tristique arcu. Proin placerat turpis justo. Nunc lacinia tempus augue.');
+        // tempName = rp.parameters['codename'];
+        codename = new Codename({'name':"AGGRAVATED AVATAR", 'description':'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed enim ipsum, pulvinar quis malesuada vel, consequat at ex. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Suspendisse in volutpat lacus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nunc eu tristique arcu. Proin placerat turpis justo. Nunc lacinia tempus augue.'});
+    }
+}
+
+class CodenameResult {
+    String slug, name, summary, url, thumbUrl;
+
+    CodenameResult(Map json) {
+        this.name = json['name'];
+        this.slug = json['slug'];
+        this.summary = json['summary'];
+        this.url = json['url'];
+        this.thumbUrl = json['thumbUrl'];
     }
 }
 
@@ -101,16 +132,9 @@ class CodenameComponent {
 )
 class CodenameResultComponent {
     @NgOneWay('codename')
-    Codename codename;
+    CodenameResult codename;
 }
 
-class Codename {
-    String id;
-    String name;
-    String description;
-
-    Codename(this.name, this.description);
-}
 
 @Component(
     selector: 'nav',
@@ -162,17 +186,56 @@ class IndexComponent {
     useShadowDom: false
 )
 class SearchComponent {
-    String query;
-    List<Codename> results;
+    String query, lastQuery;
+    List<CodenameResult> results;
+    Timer delay;
+    String status = 'noQuery';
+    Element spinner;
 
     SearchComponent() {
         results = new List<Codename>();
+    }
 
-        results.add(new Codename("AGGRAVATED AVATAR", 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed enim ipsum, pulvinar quis malesuada vel, consequat at ex. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Suspendisse in volutpat lacus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nunc eu tristique arcu. Proin placerat turpis justo. Nunc lacinia tempus augue.'));
-        results.add(new Codename("AMUSED BOUCHE", 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed enim ipsum, pulvinar quis malesuada vel, consequat at ex. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Suspendisse in volutpat lacus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nunc eu tristique arcu. Proin placerat turpis justo. Nunc lacinia tempus augue.'));
-        results.add(new Codename("BORED BOXER", 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed enim ipsum, pulvinar quis malesuada vel, consequat at ex. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Suspendisse in volutpat lacus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nunc eu tristique arcu. Proin placerat turpis justo. Nunc lacinia tempus augue.'));
-        results.add(new Codename("DULL DANDRUFF", 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed enim ipsum, pulvinar quis malesuada vel, consequat at ex. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Suspendisse in volutpat lacus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nunc eu tristique arcu. Proin placerat turpis justo. Nunc lacinia tempus augue.'));
-        results.add(new Codename("ZEALOUS ZEBRA", 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed enim ipsum, pulvinar quis malesuada vel, consequat at ex. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Suspendisse in volutpat lacus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nunc eu tristique arcu. Proin placerat turpis justo. Nunc lacinia tempus augue.'));
+    void handleKeypress(KeyboardEvent ke) {
+        if (delay != null) {
+            delay.cancel();
+        }
+
+        if (ke.target.value.trim() == '') {
+            this.status = 'noQuery';
+        }
+
+        delay = new Timer(new Duration(milliseconds: 500), search);
+    }
+
+    void search() {
+        if (spinner == null) {
+            spinner = querySelector('img.spinner');
+        }
+
+        if (query.trim() != '') {
+            String url = '/search?q=' + this.query;
+            HttpRequest.getString(url).then(this.onDataLoaded);
+            spinner.classes.remove('hide');
+        }
+    }
+
+    void onDataLoaded(String response) {
+        spinner.classes.add('hide');
+        Map searchResults = JSON.decode(response);
+        results.clear();
+
+        if (searchResults['codenames'].length == 0) {
+            this.status = 'queryHasNoResults';
+        } else {
+            this.status = 'queryHasResults';
+        }
+
+        lastQuery = query;
+
+        for (var codename_json in searchResults['codenames']) {
+            results.add(new CodenameResult(codename_json));
+        }
     }
 }
 
