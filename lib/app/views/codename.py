@@ -87,19 +87,25 @@ class CodenameView(FlaskView):
             'references': list(),
         }
 
-        for image in codename.images:
+        if len(codename.images) == 0:
             codename_json['images'].append({
-                'url': url_for(
-                    'CodenameView:get_image',
-                    slug=codename.slug,
-                    image_id=image.id
-                ),
-                'thumbUrl': url_for(
-                    'CodenameView:get_thumb',
-                    slug=codename.slug,
-                    image_id=image.id
-                ),
+                'url': DEFAULT_IMAGE_URL,
+                'thumbUrl': DEFAULT_THUMB_URL,
             })
+        else:
+            for image in codename.images:
+                codename_json['images'].append({
+                    'url': url_for(
+                        'CodenameView:get_image',
+                        slug=codename.slug,
+                        image_id=image.id
+                    ),
+                    'thumbUrl': url_for(
+                        'CodenameView:get_thumb',
+                        slug=codename.slug,
+                        image_id=image.id
+                    ),
+                })
 
         for reference in codename.references:
             codename_json['references'].append({
@@ -173,11 +179,10 @@ class CodenameView(FlaskView):
             codename_json = {
                 'name': codename.name,
                 'slug': codename.slug,
-                'summary': codename.summary,
                 'url': url_for('CodenameView:get', slug=codename.slug)
             }
 
-            if len(codename.images) == 0:
+            if (len(codename.images) == 0):
                 codename_json['thumbUrl'] = DEFAULT_THUMB_URL
             else:
                 codename_json['thumbUrl'] = url_for(

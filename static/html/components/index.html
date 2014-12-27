@@ -7,6 +7,8 @@
 <div ng-repeat="letter in letters">
   <h2 id="{{letter}}">{{letter}}</h2>
   <ul>
-    <li ng-repeat="codename in codenamesByInitial[letter]">{{codename}}</li>
+    <li ng-repeat="codename in codenamesByInitial[letter]">
+      <a href="#/cn/{{codename.slug}}">{{codename.name}}</a>
+    </li>
   </ul>
 </div>

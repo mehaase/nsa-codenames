@@ -101,6 +101,7 @@ def init_flask_assets(flask_app, config):
     assets.register("less_all", less)
 
     js = Bundle(
+        'js/markdown.js',
         'dart/packages/web_components/platform.js',
         'dart/packages/web_components/dart_support.js',
         filters='jsmin',

@@ -1,3 +1,15 @@
 <h1>{{codename.name}}</h1>
-<img src='/static/img/angry-neighbor.png'>
-{{codename.description}}
+<img ng-src='{{codename.images[0].url}}'>
+
+<h2>Summary</h2>
+<div>{{codename.summary}}</div>
+
+<h2>Description</h2>
+<div>{{codename.description}}</div>
+
+<h2>References</h2>
+<ul>
+  <li ng-repeat='reference in codename.references'>
+    <a href="{{reference.externalUrl}}">{{reference.annotation}}</a>
+  </li>
+</ul>

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
+import 'dart:js';
 import 'package:angular/angular.dart';
 import 'package:angular/application_factory.dart';
 
@@ -30,7 +31,6 @@ void routeInitializer(Router router, RouteViewFactory views) {
   });
 }
 
-// From http://stackoverflow.com/questions/21523063/how-can-i-know-on-the-first-page-load-what-the-current-route-is-from-within-a
 @Decorator(selector: '[current-route]')
 class CurrentRoute {
     Router router;
@@ -69,6 +69,7 @@ class CurrentRoute {
 
 class NsaCodenamesAppModule extends Module {
     NsaCodenamesAppModule() {
+        bind(AboutComponent);
         bind(CodenameComponent);
         bind(CodenameResultComponent);
         bind(CurrentRoute);
@@ -80,11 +81,35 @@ class NsaCodenamesAppModule extends Module {
     }
 }
 
+@Component(
+    selector: 'about',
+    templateUrl: '/static/html/components/about.html',
+    useShadowDom: false
+)
+class AboutComponent {
+    String html, markdown, updated;
+
+    AboutComponent() {
+        HttpRequest.getString('/content/about').then(this.onDataLoaded);
+    }
+
+    void onDataLoaded(String response) {
+        Map json = JSON.decode(response);
+        this.markdown = json['markdown'];
+        this.html = context['markdown'].callMethod('toHTML', [this.markdown]);
+
+        Datetime dt = new DateTime.fromMillisecondsSinceEpoch(json['updated']);
+        this.updated = '${dt.year.toString()}-'
+                     + '${dt.month.toString().padLeft(2, '0')}-'
+                     + '${dt.day.toString().padLeft(2, '0')}';
+    }
+}
+
 class Codename {
     String name, slug, summary, description;
     DateTime added, updated;
-    // List<Image> images;
-    // List<Reference> references;
+    List<Image> images;
+    List<Reference> references;
 
     Codename.old(this.name, this.description);
 
@@ -93,8 +118,19 @@ class Codename {
         this.slug = json['slug'];
         this.summary = json['summary'];
         this.description = json['description'];
-        // this.added = new DateTime.fromMillisecondsSinceEpoch(json['added']);
-        // this.updated = new DateTime.fromMillisecondsSinceEpoch(json['updated']);
+
+        this.added = new DateTime.fromMillisecondsSinceEpoch(json['added']);
+        this.updated = new DateTime.fromMillisecondsSinceEpoch(json['updated']);
+
+        this.images = new List<Image>();
+        for (Map imageJson in json['images']) {
+            this.images.add(new Image(imageJson));
+        }
+
+        this.references = new List<Reference>();
+        for (Map referenceJson in json['references']) {
+            this.references.add(new Reference(referenceJson));
+        }
     }
 }
 
@@ -108,8 +144,13 @@ class CodenameComponent {
     Codename codename;
 
     CodenameComponent(RouteProvider rp) {
-        // tempName = rp.parameters['codename'];
-        codename = new Codename({'name':"AGGRAVATED AVATAR", 'description':'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed enim ipsum, pulvinar quis malesuada vel, consequat at ex. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Suspendisse in volutpat lacus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nunc eu tristique arcu. Proin placerat turpis justo. Nunc lacinia tempus augue.'});
+        String url = '/' + rp.parameters['codename'];
+        HttpRequest.getString(url).then(this.onDataLoaded);
+    }
+
+    void onDataLoaded(String response) {
+        Map json = JSON.decode(response);
+        this.codename = new Codename(json);
     }
 }
 
@@ -145,6 +186,15 @@ class NavComponent {
 
 }
 
+class Image {
+    String thumbUrl, url;
+
+    Image(Map json) {
+        this.thumbUrl = json['thumbUrl'];
+        this.url = json['url'];
+    }
+}
+
 @Component(
     selector: 'index',
     templateUrl: '/static/html/components/index.html',
@@ -152,7 +202,7 @@ class NavComponent {
 )
 class IndexComponent {
     List<String> letters;
-    Map<String, List<String>> codenamesByInitial;
+    Map<String, List<CodenameResult>> codenamesByInitial;
 
     IndexComponent() {
         letters = new List<String>.generate(
@@ -166,17 +216,34 @@ class IndexComponent {
             value: (item) => new List<String>()
         );
 
-        codenamesByInitial['A'].add('AGGRAVATED AVATAR');
-        codenamesByInitial['A'].add('AMUSED BOUCHE');
-        codenamesByInitial['B'].add('BORED BOXER');
-        codenamesByInitial['D'].add('DULL DANDRUFF');
-        codenamesByInitial['Z'].add('ZEALOUS ZEBRA');
+        HttpRequest.getString('/index').then(this.onDataLoaded);
+    }
+
+    void onDataLoaded(String response) {
+        Map json = JSON.decode(response);
+        for (Map codenameJson in json['codenames']) {
+            String initial = codenameJson['name'].substring(0, 1);
+
+            this.codenamesByInitial[initial].add(
+                new CodenameResult(codenameJson)
+            );
+        }
     }
 
     void scroll(String letter) {
         var element = querySelector("#" + letter);
         print(element);
         element.scrollIntoView(ScrollAlignment.TOP);
+    }
+}
+
+class Reference {
+    String annotation, externalUrl, url;
+
+    Reference(Map json) {
+        this.annotation = json['annotation'];
+        this.externalUrl = json['externalUrl'];
+        this.url = json['url'];
     }
 }
 

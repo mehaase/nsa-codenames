@@ -15,7 +15,7 @@ class Database(cli.BaseCli):
 
         about = Content('about')
         about.markdown = dedent('''
-            ## Motivation ☺
+            ## Motivation
 
             This site was inspired by the colorful codenames used for various
             NSA programs. The codenames evoke vivid imagery, and the they are
