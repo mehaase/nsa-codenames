@@ -1,11 +1,8 @@
 from datetime import datetime
 
 from sqlalchemy import Column, DateTime, Integer, String, Text
-from sqlalchemy.orm import relationship, backref
 
 from model import Base
-from model.image import Image
-from model.reference import Reference
 
 class Content(Base):
     ''' Data model for a codename. '''

@@ -19,11 +19,7 @@ def get_engine(config, debug=False):
     return _engine
 
 def get_session(engine):
-    '''
-    Get a SQLAlchemy session.
-
-    This uses SQLAlchemy's thread-safe API, scoped_session.
-    '''
+    ''' Get a SQLAlchemy session. '''
 
     global _sessionmaker
 

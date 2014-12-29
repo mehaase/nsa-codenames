@@ -1,11 +1,17 @@
 import app
 import cli
 
-class RunServer(cli.BaseCli):
+class RunServerCli(cli.BaseCli):
     """ A tool for running a development server. """
 
     def _get_args(self, arg_parser):
         """ Customize arguments. """
+
+        arg_parser.add_argument(
+            '--debug-db',
+            action='store_true',
+            help='Print SQL queries.'
+        )
 
         arg_parser.add_argument(
             '--ip',
@@ -16,7 +22,7 @@ class RunServer(cli.BaseCli):
     def _run(self, args, config):
         """ Main entry point. """
 
-        flask_app = app.bootstrap(debug=args.debug)
+        flask_app = app.bootstrap(debug=args.debug, debug_db=args.debug_db)
 
         # Disable secure cookies for the development server.
         flask_app.config["SESSION_COOKIE_SECURE"] = False

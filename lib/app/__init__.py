@@ -28,7 +28,7 @@ class MyFlask(Flask):
     })
 
 @failsafe
-def bootstrap(debug=False):
+def bootstrap(debug=False, debug_db=False):
     """ Bootstrap the Flask application and return a reference to it. """
 
     global flask_app
@@ -43,6 +43,7 @@ def bootstrap(debug=False):
         template_folder=app.config.get_path("static/html")
     )
     flask_app.debug = debug
+    flask_app.debug_db = debug_db
 
     config = app.config.get_config()
 
@@ -76,8 +77,13 @@ def init_flask(flask_app, config):
     def before_request():
         ''' Initialize request context. '''
 
-        engine = app.database.get_engine(dict(config.items('database')))
+        engine = app.database.get_engine(
+            dict(config.items('database')),
+            debug=flask_app.debug_db
+        )
+
         g.db = app.database.get_session(engine)
+        g.config = config
 
     @flask_app.before_first_request
     def before_first_request():
@@ -115,8 +121,17 @@ def init_views(flask_app, config):
 
     import app.views.angular
 
+    from app.views.authenticate import TwitterAuthenticationView
+    TwitterAuthenticationView.register(
+        flask_app,
+        route_base='/authenticate/twitter'
+    )
+
     from app.views.codename import CodenameView
     CodenameView.register(flask_app, route_base='/')
 
     from app.views.content import ContentView
     ContentView.register(flask_app, route_base='/content')
+
+    from app.views.user import UserView
+    UserView.register(flask_app, route_base='/user')

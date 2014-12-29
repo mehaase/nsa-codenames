@@ -1,6 +1,20 @@
-[flask]
-; Configuration items for Flask.
-; See: http://flask.pocoo.org/docs/0.10/config/
+[database]
 
-; Set the secret key to a long, random string that is unique to this site.
-SECRET_KEY = ##SECRET_KEY##
+; Credentials to access MySQL.
+
+username = ##MYSQL_USERNAME##
+password = ##MYSQL_PASSWORD##
+
+[flask]
+
+; Generate a random string for Flask to sign cookies.
+
+SECRET_KEY = ##FLASK_SECRET_KEY##
+
+[twitter]
+
+; Create a set of Twitter client credentials on dev.twitter.com and
+; enter them here.
+
+client_key = ##TWITTER_CLIENT_KEY##
+client_secret = ##TWITTER_CLIENT_SECRET##

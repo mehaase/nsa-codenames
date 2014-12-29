@@ -5,7 +5,7 @@ from model import Base, Codename, Content, Image, Reference
 
 import app.database
 
-class Database(cli.BaseCli):
+class DatabaseCli(cli.BaseCli):
     ''' A tool for initializing the database. '''
 
     def _create_fixture_data(self):

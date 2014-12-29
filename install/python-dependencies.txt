@@ -5,4 +5,5 @@ flask-classy
 Flask-Failsafe
 PyMySQL
 python-slugify
+requests-oauth
 SQLAlchemy
