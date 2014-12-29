@@ -4,6 +4,8 @@ import 'dart:html';
 import 'dart:js';
 import 'package:angular/angular.dart';
 import 'package:angular/application_factory.dart';
+import 'package:bootjack/bootjack.dart';
+import 'package:dquery/dquery.dart';
 
 void routeInitializer(Router router, RouteViewFactory views) {
   views.configure({
@@ -307,6 +309,12 @@ class SearchComponent {
 }
 
 void main() {
+    // Register Bootjack components.
+    Collapse.use();
+    Dropdown.use();
+    Transition.use();
+
+    // Create main application.
     applicationFactory()
         .addModule(new NsaCodenamesAppModule())
         .run();

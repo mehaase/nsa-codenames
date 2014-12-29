@@ -24,12 +24,6 @@
   display: none;
 }
 
-// Custom transitions =========================================================
-
-div.alert {
-  transition: all 1500ms ease;
-}
-
 // Codename ===================================================================
 codename-result {
   display: block;
@@ -99,6 +93,20 @@ search codename-result img {
   font-size: 18px;
   font-weight: @headings-font-weight;
   text-transform: uppercase;
+}
+
+@media (min-width: @grid-float-breakpoint) {
+  .navbar a.user {
+    padding-left: 3.5em;
+
+    img {
+      height: 40px;
+      width: 40px;
+      position: absolute;
+      left: 0.7em;
+      bottom: 0.5em;
+    }
+  }
 }
 
 // Buttons ====================================================================

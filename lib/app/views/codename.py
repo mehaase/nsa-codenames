@@ -310,6 +310,8 @@ class CodenameView(FlaskView):
         if query == '':
             return error('The query parameter "q" is required.')
 
+        query = query.replace('%', '\%').replace('_', '\_')
+
         codenames = g.db.query(Codename) \
                         .filter(
                             Codename.name.like('%{0}%'.format(query)) |

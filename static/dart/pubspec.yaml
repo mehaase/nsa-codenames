@@ -1,7 +1,8 @@
 name: nsa_codenames
 dependencies:
     angular: "1.0.0"
-    web_components: ">=0.8.0 <0.9.0"
+    bootjack: any
     browser: ">=0.10.0+2 <0.11.0"
+    web_components: ">=0.8.0 <0.9.0"
 transformers:
 - angular
