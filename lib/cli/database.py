@@ -15,33 +15,23 @@ class DatabaseCli(cli.BaseCli):
 
         about = Content('about')
         about.markdown = dedent('''
-            ## Motivation
+            ## Placeholder
 
-            This site was inspired by the colorful codenames used for various
-            NSA programs. The codenames evoke vivid imagery, and the they are
-            perfectly suited for vivid, crowd-sourced illustrations.
-
-            Our motive is to provide a comprehensive and useful database for
-            American taxpayers to understand and analyze the intelligence
-            programs that they pay for. In order to open this information up as
-            much as possible, this site also features an API that enables
-            programmatic access to our curated dataset.
-
-            We place equal emphasis on whimsy and practicality; amusement and
-            information. As you browse this site, we hope you'll laugh and
-            cringe at alternating moments.
-
-            ## Under The Hood
-
-            This site is built as a single page application (SPA) with
-            [Angular Dart](https://angulardart.org/)
-            using a [Bootwatch theme](http://bootswatch.com/journal/).
-            This SPA supports deep links and
-            [search engine spiders](https://developers.google.com/webmasters/ajax-crawling/docs/getting-started).
-            The server side is written in Python using
-            [the Flask microframework](http://flask.pocoo.org/).
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce
+            aliquam ex a sem vulputate ultrices. Integer vestibulum lacus porta
+            dui euismod bibendum.
         ''')
         session.add(about)
+
+        home = Content('home')
+        home.markdown = dedent('''
+            ## Placeholder
+
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce
+            aliquam ex a sem vulputate ultrices. Integer vestibulum lacus porta
+            dui euismod bibendum.
+        ''')
+        session.add(home)
 
         session.commit()
 

@@ -4,10 +4,22 @@
 
 @import url("//fonts.googleapis.com/css?family=News+Cycle:400,700");
 
+// Variables ==================================================================
+
+@fast-animation: 0.75s;
+
 // Body =======================================================================
 
 a {
   cursor: pointer;
+}
+
+textarea {
+  border: 1px solid @gray-lighter;
+}
+
+.clear {
+  clear: both;
 }
 
 .container {
@@ -29,6 +41,7 @@ a {
 }
 
 // Codename ===================================================================
+
 codename-result {
   display: block;
   clear: both;
@@ -36,6 +49,66 @@ codename-result {
 
 codename img {
   margin: 1em 0em;
+}
+
+// Editable ===================================================================
+
+.editable {
+  position: relative;
+  transition: background-color @fast-animation;
+
+  #edit-icon {
+    position: absolute;
+    top: 0;
+    right: 0;
+
+    text-transform: uppercase;
+    font-size: @font-size-small;
+
+    opacity: 0.0;
+
+    transition: opacity @fast-animation;
+  }
+
+  #editor {
+    display: none;
+  }
+}
+
+.editable-active:hover {
+  background-color: #f9f9f9;
+
+  #edit-icon {
+    opacity: 1.0;
+  }
+}
+
+.editing {
+  #content {
+    width: 49%;
+    float: left;
+  }
+
+  #edit-icon {
+    display: none;
+  }
+
+  #editor {
+    display: block;
+    width: 49%;
+    float: right;
+
+    textarea {
+      display: block;
+      width: 100%;
+      margin-bottom: 1em;
+    }
+  }
+
+  img.spinner {
+    padding-left: 2px;
+    padding-top: 2px;
+  }
 }
 
 // Login ======================================================================
