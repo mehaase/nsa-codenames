@@ -3,6 +3,7 @@
 from flask import Flask, g
 from flask.ext.assets import Environment, Bundle
 from flask_failsafe import failsafe
+from itsdangerous import Signer
 
 import app.config
 import app.database
@@ -85,9 +86,9 @@ def init_flask(flask_app, config):
         g.db = app.database.get_session(engine)
         g.config = config
 
-    @flask_app.before_first_request
-    def before_first_request():
-        ''' Initialize application context. '''
+        signer = Signer(config.get('flask', 'SECRET_KEY'))
+        g.sign = lambda s: signer.sign(str(s).encode('utf8')).decode('utf-8')
+        g.unsign = signer.unsign
 
         g.debug = flask_app.debug
 
@@ -98,7 +99,8 @@ def init_flask_assets(flask_app, config):
     assets.debug = flask_app.debug
 
     less = Bundle(
-        "less/bootstrap.less",
+        "less/bootstrap/bootstrap.less",
+        "less/font-awesome/font-awesome.less",
         filters="less, cssmin",
         output="combined/bootstrap.css",
         depends="less/*.less"

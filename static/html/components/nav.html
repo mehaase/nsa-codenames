@@ -13,15 +13,17 @@
     <li current-route='search'><a href='#/search'>Search</a></li>
   </ul>
   <ul class='nav navbar-nav navbar-right'>
-    <li><a href='#'>Log In</a></li>
-    <li class='dropdown'>
-      <a href='#' class='dropdown-toggle user' data-toggle='dropdown'>
-        <img src='/static/img/default-user.png'>
-        mehaase
+    <li current-route='login' ng-if='!auth.isLoggedIn()'>
+      <a href='#/login'>Log In</a>
+    </li>
+    <li ng-if='auth.isLoggedIn()' class='dropdown'>
+      <a class='dropdown-toggle user' data-toggle='dropdown'>
+        <img ng-src='{{auth.currentUser.imageUrl}}'>
+        {{auth.currentUser.username}}
         <b class='caret'></b>
       </a>
       <ul class='dropdown-menu'>
-        <li><a href='#'>Log Out</a></li>
+        <li><a ng-click='auth.logOut()'>Log Out</a></li>
       </ul>
     </li>
   </ul>

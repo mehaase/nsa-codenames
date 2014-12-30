@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html ng-app>
+  <head>
+    <title>NSA:Codenames</title>
+  </head>
+  <body onload='completeAuthentication()'>
+    <p>You have successfully logged in. You can close this window!</p>
+    <script type="text/javascript">
+      function completeAuthentication() {
+        var opener = window.opener;
+
+        if (opener) {
+          opener.postMessage(window.location.href, window.location.href);
+        }
+      }
+    </script>
+  </body>
+</html>

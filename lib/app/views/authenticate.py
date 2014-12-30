@@ -1,10 +1,12 @@
 ''' Views for various authentication schemes. '''
 
-from flask import g, json as flask_json, request, session
+from datetime import datetime
+
+from flask import g, json as flask_json, render_template, request
 from flask.ext.classy import FlaskView, route
 from requests_oauthlib import OAuth1Session
 
-from app.rest import json, success
+from app.rest import json, success, url_for
 from model import User
 
 class TwitterAuthenticationView(FlaskView):
@@ -28,7 +30,8 @@ class TwitterAuthenticationView(FlaskView):
 
         oauth = OAuth1Session(
             client_key=g.config.get('twitter', 'client_key'),
-            client_secret=g.config.get('twitter', 'client_secret')
+            client_secret=g.config.get('twitter', 'client_secret'),
+            callback_uri=url_for('TwitterAuthenticationView:callback')
         )
 
         response = oauth.fetch_request_token(request_token_url)
@@ -36,10 +39,22 @@ class TwitterAuthenticationView(FlaskView):
         response = {
             'url': oauth.authorization_url(authorization_url),
             'resource_owner_key': response['oauth_token'],
-            'resource_owner_secret': response['oauth_token_secret'],
+            'resource_owner_secret': response['oauth_token_secret']
         }
 
         return json(response)
+
+    @route('/callback')
+    def callback(self):
+        '''
+        Handles a Twitter oauth callback.
+
+        This is ultra-minimalist: it doesn't do anything! The rendered HTML
+        contains some Javascript that will communicate back to the main
+        application.
+        '''
+
+        return render_template('oauth-callback.html')
 
     @route('/', methods=('POST',))
     def post_verifier(self):
@@ -78,11 +93,11 @@ class TwitterAuthenticationView(FlaskView):
 
         g.db.commit()
 
-        session['user_id'] = user.id
-
         return success(
             'Twitter authentication is successful.',
-            pick_username=pick_username
+            pick_username=pick_username,
+            token=g.sign(user.id)
+
         )
 
     def _get_access_token(self, oauth_json):

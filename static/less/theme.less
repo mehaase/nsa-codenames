@@ -1,272 +1,230 @@
+// Journal 3.3.1
+// Bootswatch
+// -----------------------------------------------------
 
-//
-// Load core variables and mixins
-// --------------------------------------------------
+@import url("//fonts.googleapis.com/css?family=News+Cycle:400,700");
 
-@import "variables.less";
-@import "mixins.less";
+// Body =======================================================================
 
+a {
+  cursor: pointer;
+}
 
-//
-// Buttons
-// --------------------------------------------------
+.container {
+  margin-top: 15px;
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: 15px;
+  padding-left: 15px;
 
-// Common styles
-.btn-default,
-.btn-primary,
-.btn-success,
-.btn-info,
-.btn-warning,
-.btn-danger {
-  text-shadow: 0 -1px 0 rgba(0,0,0,.2);
-  @shadow: inset 0 1px 0 rgba(255,255,255,.15), 0 1px 1px rgba(0,0,0,.075);
-  .box-shadow(@shadow);
-
-  // Reset the shadow
-  &:active,
-  &.active {
-    .box-shadow(inset 0 3px 5px rgba(0,0,0,.125));
-  }
-
-  .badge {
-    text-shadow: none;
+  @media (min-width: @grid-float-breakpoint) {
+    width: 750px;
   }
 }
 
-// Mixin for generating new styles
-.btn-styles(@btn-color: #555) {
-  #gradient > .vertical(@start-color: @btn-color; @end-color: darken(@btn-color, 12%));
-  .reset-filter(); // Disable gradients for IE9 because filter bleeds through rounded corners
-  background-repeat: repeat-x;
-  border-color: darken(@btn-color, 14%);
+// Angular ====================================================================
 
-  &:hover,
-  &:focus  {
-    background-color: darken(@btn-color, 12%);
-    background-position: 0 -15px;
+.ng-hide {
+  display: none;
+}
+
+// Codename ===================================================================
+codename-result {
+  display: block;
+  clear: both;
+}
+
+codename img {
+  margin: 1em 0em;
+}
+
+// Login ======================================================================
+
+login {
+  @media (min-width: @grid-float-breakpoint) {
+    display: block;
+    width: 60%;
+    margin: 0 auto;
   }
 
-  &:active,
-  &.active {
-    background-color: darken(@btn-color, 12%);
-    border-color: darken(@btn-color, 14%);
+  button {
+    width: 100%;
   }
 
-  &:disabled,
-  &[disabled] {
-    background-color: darken(@btn-color, 12%);
-    background-image: none;
-  }
-}
-
-// Common styles
-.btn {
-  // Remove the gradient for the pressed/active state
-  &:active,
-  &.active {
-    background-image: none;
-  }
-}
-
-// Apply the mixin to the buttons
-.btn-default { .btn-styles(@btn-default-bg); text-shadow: 0 1px 0 #fff; border-color: #ccc; }
-.btn-primary { .btn-styles(@btn-primary-bg); }
-.btn-success { .btn-styles(@btn-success-bg); }
-.btn-info    { .btn-styles(@btn-info-bg); }
-.btn-warning { .btn-styles(@btn-warning-bg); }
-.btn-danger  { .btn-styles(@btn-danger-bg); }
-
-
-//
-// Images
-// --------------------------------------------------
-
-.thumbnail,
-.img-thumbnail {
-  .box-shadow(0 1px 2px rgba(0,0,0,.075));
-}
-
-
-//
-// Dropdowns
-// --------------------------------------------------
-
-.dropdown-menu > li > a:hover,
-.dropdown-menu > li > a:focus {
-  #gradient > .vertical(@start-color: @dropdown-link-hover-bg; @end-color: darken(@dropdown-link-hover-bg, 5%));
-  background-color: darken(@dropdown-link-hover-bg, 5%);
-}
-.dropdown-menu > .active > a,
-.dropdown-menu > .active > a:hover,
-.dropdown-menu > .active > a:focus {
-  #gradient > .vertical(@start-color: @dropdown-link-active-bg; @end-color: darken(@dropdown-link-active-bg, 5%));
-  background-color: darken(@dropdown-link-active-bg, 5%);
-}
-
-
-//
-// Navbar
-// --------------------------------------------------
-
-// Default navbar
-.navbar-default {
-  #gradient > .vertical(@start-color: lighten(@navbar-default-bg, 10%); @end-color: @navbar-default-bg);
-  .reset-filter(); // Remove gradient in IE<10 to fix bug where dropdowns don't get triggered
-  border-radius: @navbar-border-radius;
-  @shadow: inset 0 1px 0 rgba(255,255,255,.15), 0 1px 5px rgba(0,0,0,.075);
-  .box-shadow(@shadow);
-
-  .navbar-nav > .open > a,
-  .navbar-nav > .active > a {
-    #gradient > .vertical(@start-color: darken(@navbar-default-link-active-bg, 5%); @end-color: darken(@navbar-default-link-active-bg, 2%));
-    .box-shadow(inset 0 3px 9px rgba(0,0,0,.075));
-  }
-}
-.navbar-brand,
-.navbar-nav > li > a {
-  text-shadow: 0 1px 0 rgba(255,255,255,.25);
-}
-
-// Inverted navbar
-.navbar-inverse {
-  #gradient > .vertical(@start-color: lighten(@navbar-inverse-bg, 10%); @end-color: @navbar-inverse-bg);
-  .reset-filter(); // Remove gradient in IE<10 to fix bug where dropdowns don't get triggered
-
-  .navbar-nav > .open > a,
-  .navbar-nav > .active > a {
-    #gradient > .vertical(@start-color: @navbar-inverse-link-active-bg; @end-color: lighten(@navbar-inverse-link-active-bg, 2.5%));
-    .box-shadow(inset 0 3px 9px rgba(0,0,0,.25));
+  img.spinner {
+    margin-top: -5px;
   }
 
-  .navbar-brand,
-  .navbar-nav > li > a {
-    text-shadow: 0 -1px 0 rgba(0,0,0,.25);
+  input {
+    width:100%;
+    text-align: center;
+  }
+
+  p {
+    font-weight: bold;
+  }
+
+  .panel-body {
+    text-align: center;
   }
 }
 
-// Undo rounded corners in static and fixed navbars
-.navbar-static-top,
-.navbar-fixed-top,
-.navbar-fixed-bottom {
-  border-radius: 0;
+// Search =====================================================================
+
+search input#query {
+  width: 50%;
+  height: 39px;
+  position: relative;
+  top: 3px;
+  border: 1px solid @gray-light;
+  border-radius: 4px;
+  font-size: 14pt;
+  padding-left: 0.6em;
+  margin-right: 0.75em;
+  margin-bottom: 1em;
 }
 
-// Fix active state of dropdown items in collapsed mode
-@media (max-width: @grid-float-breakpoint-max) {
-  .navbar .navbar-nav .open .dropdown-menu > .active > a {
-    &,
-    &:hover,
-    &:focus {
+search img.spinner {
+  position: relative;
+  left: -7.7em;
+}
+
+search codename-result {
+  display: block;
+  margin: 1.5em 0em;
+}
+
+search codename-result img {
+  float: left;
+  margin-right: 0.5em;
+  margin-bottom: 0.25em;
+}
+
+// Navbar =====================================================================
+
+.navbar {
+  font-size: 18px;
+  font-family: @font-family-sans-serif;
+  font-weight: @headings-font-weight;
+
+  &-default {
+
+    .badge {
+      background-color: #000;
       color: #fff;
-      #gradient > .vertical(@start-color: @dropdown-link-active-bg; @end-color: darken(@dropdown-link-active-bg, 5%));
+    }
+  }
+
+  &-inverse {
+
+    .badge {
+      background-color: #fff;
+      color: @navbar-inverse-bg;
     }
   }
 }
 
-
-//
-// Alerts
-// --------------------------------------------------
-
-// Common styles
-.alert {
-  text-shadow: 0 1px 0 rgba(255,255,255,.2);
-  @shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 1px 2px rgba(0,0,0,.05);
-  .box-shadow(@shadow);
+.navbar-brand {
+  font-size: 18px;
+  font-weight: @headings-font-weight;
+  text-transform: uppercase;
 }
 
-// Mixin for generating new styles
-.alert-styles(@color) {
-  #gradient > .vertical(@start-color: @color; @end-color: darken(@color, 7.5%));
-  border-color: darken(@color, 15%);
-}
+@media (min-width: @grid-float-breakpoint) {
+  .navbar a.user {
+    padding-left: 3.5em;
 
-// Apply the mixin to the alerts
-.alert-success    { .alert-styles(@alert-success-bg); }
-.alert-info       { .alert-styles(@alert-info-bg); }
-.alert-warning    { .alert-styles(@alert-warning-bg); }
-.alert-danger     { .alert-styles(@alert-danger-bg); }
-
-
-//
-// Progress bars
-// --------------------------------------------------
-
-// Give the progress background some depth
-.progress {
-  #gradient > .vertical(@start-color: darken(@progress-bg, 4%); @end-color: @progress-bg)
-}
-
-// Mixin for generating new styles
-.progress-bar-styles(@color) {
-  #gradient > .vertical(@start-color: @color; @end-color: darken(@color, 10%));
-}
-
-// Apply the mixin to the progress bars
-.progress-bar            { .progress-bar-styles(@progress-bar-bg); }
-.progress-bar-success    { .progress-bar-styles(@progress-bar-success-bg); }
-.progress-bar-info       { .progress-bar-styles(@progress-bar-info-bg); }
-.progress-bar-warning    { .progress-bar-styles(@progress-bar-warning-bg); }
-.progress-bar-danger     { .progress-bar-styles(@progress-bar-danger-bg); }
-
-// Reset the striped class because our mixins don't do multiple gradients and
-// the above custom styles override the new `.progress-bar-striped` in v3.2.0.
-.progress-bar-striped {
-  #gradient > .striped();
-}
-
-
-//
-// List groups
-// --------------------------------------------------
-
-.list-group {
-  border-radius: @border-radius-base;
-  .box-shadow(0 1px 2px rgba(0,0,0,.075));
-}
-.list-group-item.active,
-.list-group-item.active:hover,
-.list-group-item.active:focus {
-  text-shadow: 0 -1px 0 darken(@list-group-active-bg, 10%);
-  #gradient > .vertical(@start-color: @list-group-active-bg; @end-color: darken(@list-group-active-bg, 7.5%));
-  border-color: darken(@list-group-active-border, 7.5%);
-
-  .badge {
-    text-shadow: none;
+    img {
+      height: 40px;
+      width: 40px;
+      position: absolute;
+      left: 0.7em;
+      bottom: 0.5em;
+    }
   }
 }
 
+// Buttons ====================================================================
 
-//
-// Panels
-// --------------------------------------------------
+// Typography =================================================================
 
-// Common styles
+// Tables =====================================================================
+
+// Forms ======================================================================
+
+.has-warning {
+  .help-block,
+  .control-label,
+  .form-control-feedback {
+    color: @brand-danger;
+  }
+
+  .form-control,
+  .form-control:focus {
+    border-color: @brand-danger;
+  }
+}
+
+.has-error {
+  .help-block,
+  .control-label,
+  .form-control-feedback {
+    color: @brand-primary;
+  }
+
+  .form-control,
+  .form-control:focus {
+    border-color: @brand-primary;
+  }
+}
+
+.has-success {
+  .help-block,
+  .control-label,
+  .form-control-feedback {
+    color: @brand-success;
+  }
+
+  .form-control,
+  .form-control:focus {
+    border-color: @brand-success;
+  }
+}
+
+// Navs =======================================================================
+
+// Indicators =================================================================
+
+.badge {
+  padding-bottom: 4px;
+  vertical-align: 3px;
+  font-size: 10px;
+}
+
+// Progress bars ==============================================================
+
+// Containers =================================================================
+
+.jumbotron {
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: @font-family-sans-serif;
+    font-weight: @headings-font-weight;
+    color: #000;
+  }
+}
+
 .panel {
-  .box-shadow(0 1px 2px rgba(0,0,0,.05));
-}
 
-// Mixin for generating new styles
-.panel-heading-styles(@color) {
-  #gradient > .vertical(@start-color: @color; @end-color: darken(@color, 5%));
-}
-
-// Apply the mixin to the panel headings only
-.panel-default > .panel-heading   { .panel-heading-styles(@panel-default-heading-bg); }
-.panel-primary > .panel-heading   { .panel-heading-styles(@panel-primary-heading-bg); }
-.panel-success > .panel-heading   { .panel-heading-styles(@panel-success-heading-bg); }
-.panel-info > .panel-heading      { .panel-heading-styles(@panel-info-heading-bg); }
-.panel-warning > .panel-heading   { .panel-heading-styles(@panel-warning-heading-bg); }
-.panel-danger > .panel-heading    { .panel-heading-styles(@panel-danger-heading-bg); }
+  &-primary,
+  &-success,
+  &-warning,
+  &-danger,
+  &-info {
+    .panel-title {
+      color: #fff;
+    }
+  }
 
 
-//
-// Wells
-// --------------------------------------------------
-
-.well {
-  #gradient > .vertical(@start-color: darken(@well-bg, 5%); @end-color: @well-bg);
-  border-color: darken(@well-bg, 10%);
-  @shadow: inset 0 1px 3px rgba(0,0,0,.05), 0 1px 0 rgba(255,255,255,.1);
-  .box-shadow(@shadow);
 }

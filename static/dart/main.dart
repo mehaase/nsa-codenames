@@ -7,30 +7,42 @@ import 'package:angular/application_factory.dart';
 import 'package:bootjack/bootjack.dart';
 import 'package:dquery/dquery.dart';
 
-void routeInitializer(Router router, RouteViewFactory views) {
-  views.configure({
-    'about': ngRoute(
-        path: '/about',
-        view: '/static/html/views/about.html'
-    ),
-    'home': ngRoute(
-        defaultRoute: true,
-        path: '/',
-        view: '/static/html/views/home.html'
-    ),
-    'index': ngRoute(
-        path: '/index',
-        view: '/static/html/views/index.html'
-    ),
-    'search': ngRoute(
-        path: '/search',
-        view: '/static/html/views/search.html'
-    ),
-    'codename': ngRoute(
-        path: '/cn/:codename',
-        view: '/static/html/views/codename.html'
-    ),
-  });
+class MyRouteInitializer implements Function {
+    AuthenticationController auth;
+
+    MyRouteInitializer(this.auth);
+
+    void call(Router router, RouteViewFactory views) {
+        views.configure({
+            'about': ngRoute(
+                path: '/about',
+                view: '/static/html/views/about.html'
+            ),
+            'home': ngRoute(
+                defaultRoute: true,
+                path: '/',
+                view: '/static/html/views/home.html'
+            ),
+            'index': ngRoute(
+                path: '/index',
+                view: '/static/html/views/index.html'
+            ),
+            'login': ngRoute(
+                path: '/login',
+                view: '/static/html/views/login.html',
+                preEnter: auth.requireNoLogin
+            ),
+            'search': ngRoute(
+                path: '/search',
+                view: '/static/html/views/search.html'
+            ),
+            'codename': ngRoute(
+                path: '/cn/:codename',
+                view: '/static/html/views/codename.html',
+                preEnter: auth.requireLogin
+            ),
+        });
+    }
 }
 
 @Decorator(selector: '[current-route]')
@@ -53,11 +65,13 @@ class CurrentRoute {
     }
 
     bool isRoute() {
+        String currentRoute = element.attributes['current-route'];
+
         if (router.activePath.isEmpty) {
             return false;
         }
 
-        return element.attributes['current-route'] == router.activePath.first.name;
+        return currentRoute == router.activePath.first.name;
     }
 
     void toggleActive() {
@@ -72,14 +86,17 @@ class CurrentRoute {
 class NsaCodenamesAppModule extends Module {
     NsaCodenamesAppModule() {
         bind(AboutComponent);
+        bind(AuthenticationController);
         bind(CodenameComponent);
         bind(CodenameResultComponent);
         bind(CurrentRoute);
         bind(IndexComponent);
+        bind(LoginComponent);
         bind(NavComponent);
         bind(SearchComponent);
-        bind(RouteInitializerFn, toValue: routeInitializer);
-        bind(NgRoutingUsePushState, toValue: new NgRoutingUsePushState.value(false));
+        bind(RouteInitializerFn, toImplementation: MyRouteInitializer);
+        bind(NgRoutingUsePushState,
+             toValue: new NgRoutingUsePushState.value(false));
     }
 }
 
@@ -105,6 +122,87 @@ class AboutComponent {
                      + '${dt.month.toString().padLeft(2, '0')}-'
                      + '${dt.day.toString().padLeft(2, '0')}';
     }
+}
+
+class AuthenticationController {
+    User currentUser;
+    String token;
+
+    Router _router;
+    bool _redirect;
+
+    AuthenticationController(Router router) {
+        this._router = router;
+
+        if (window.localStorage.containsKey('token')) {
+            this.logIn(window.localStorage['token'], redirect: false);
+        }
+    }
+
+    void requireLogin(RoutePreEnterEvent e) {
+        if (!this.isLoggedIn()) {
+            e.allowEnter(new Future<bool>.value(false));
+            this._router.go('login', {});
+        }
+    }
+
+    void requireNoLogin(RoutePreEnterEvent e) {
+        if (this.isLoggedIn()) {
+            e.allowEnter(new Future<bool>.value(false));
+        }
+    }
+
+    bool isLoggedIn() {
+        return currentUser != null;
+    }
+
+    void logIn(String token, {bool redirect: true}) {
+        this._redirect = redirect;
+        this.token = token;
+        window.localStorage['token'] = token;
+
+        HttpRequest req = HttpRequest.request(
+            '/user/whoami',
+            requestHeaders: {'Auth': this.token}
+        );
+
+        req.then(this.continueLogin)
+           .catchError((e) => window.localStorage.remove('token'));
+    }
+
+    void continueLogin(HttpRequest request) {
+        var response = JSON.decode(request.response);
+
+        if (response['id'] != null) {
+            this.currentUser = new User();
+            this.currentUser.id = response['id'];
+            this.currentUser.username = response['username'];
+            this.currentUser.imageUrl = response['image_url'];
+            this.currentUser.isAdmin = response['is_admin'];
+        } else {
+            window.localStorage.remove('token');
+        }
+
+        if (this._redirect) {
+            this._router.go('home', {});
+        }
+    }
+
+    void logOut() {
+        this.currentUser = null;
+        this.token = null;
+        window.localStorage.remove('token');
+
+        if (this._router.activePath.first.name == 'login') {
+            this._router.go('home', {});
+        }
+    }
+}
+
+class User {
+    int id;
+    String username, imageUrl;
+    bool isAdmin = false;
 }
 
 class Codename {
@@ -185,7 +283,11 @@ class CodenameResultComponent {
     useShadowDom: false
 )
 class NavComponent {
+    AuthenticationController auth;
 
+    NavComponent(AuthenticationController auth) {
+        this.auth = auth;
+    }
 }
 
 class Image {
@@ -234,8 +336,130 @@ class IndexComponent {
 
     void scroll(String letter) {
         var element = querySelector("#" + letter);
-        print(element);
         element.scrollIntoView(ScrollAlignment.TOP);
+    }
+}
+
+@Component(
+    selector: 'login',
+    templateUrl: '/static/html/components/login.html',
+    useShadowDom: false
+)
+class LoginComponent {
+    AuthenticationController auth;
+
+    String redirectUrl, resourceOwnerKey, resourceOwnerSecret, username;
+    String apiUrl = '/authenticate/twitter/';
+
+    bool disableButtons = false;
+    bool showPopupWarning = false;
+    bool showUsernamePrompt = false;
+
+    Element spinner;
+    Window popup;
+    Timer popupTimer;
+
+    LoginComponent(AuthenticationController auth) {
+        this.auth = auth;
+    }
+
+    void startTwitter() {
+        if (this.spinner == null) {
+            this.spinner = querySelector('img.spinner');
+        }
+
+        if (this.popup != null) {
+            this.popup.close();
+            this.popup = null;
+        }
+
+        this.disableButtons = true;
+        HttpRequest.getString(this.apiUrl).then(this.continueTwitter);
+        this.spinner.classes.remove('hide');
+    }
+
+    void continueTwitter(String jsonResponse) {
+        Map response = JSON.decode(jsonResponse);
+
+        this.resourceOwnerKey = response['resource_owner_key'];
+        this.resourceOwnerSecret = response['resource_owner_secret'];
+        this.popup = window.open(
+            response['url'],
+            'Log In With Twitter',
+            'width=600,height=400'
+        );
+
+        // If the popup is closed without completing the workflow, then
+        // reset the UI.
+        this.popupTimer = new Timer.periodic(
+            new Duration(milliseconds: 500),
+            (event) {
+                if (this.popup.closed) {
+                    this.disableButtons = false;
+                    this.spinner.classes.add('hide');
+                    this.popupTimer.cancel();
+                }
+            }
+        );
+
+        // Wait for the workflow to complete, then finish authentication.
+        if (this.popup == null) {
+            this.showPopupWarning = true;
+        } else {
+            window.addEventListener('message', (event) {
+                print(event.data);
+                if (event.data.substring(0,4) == 'http') {
+                    this.popup.close();
+                    this.popupTimer.cancel();
+                    this.redirectUrl = event.data;
+                    finishTwitter();
+                }
+            });
+        }
+    }
+
+    void finishTwitter() {
+        Map<String,String> postData = {
+            'resource_owner_key': this.resourceOwnerKey,
+            'resource_owner_secret': this.resourceOwnerSecret,
+            'url': this.redirectUrl
+        };
+
+        Map<String,String> headers = {
+            'Content-Type': 'application/json'
+        };
+
+        HttpRequest.request(
+            this.apiUrl,
+            method: 'POST',
+            requestHeaders: headers,
+            sendData: JSON.encode(postData)
+        ).then((request) {
+            Map<String,String> response = JSON.decode(request.response);
+            print(response);
+            this.spinner.classes.add('hide');
+
+            if (response['pick_username']) {
+                this.showUsernamePrompt = true;
+                this.auth.logIn(response['token'], redirect: false);
+            } else {
+                this.auth.logIn(response['token'], redirect: true);
+            }
+        });
+    }
+
+    void saveUsername() {
+        this.spinner.classes.remove('hide');
+
+        HttpRequest.request(
+            '/user/whoami',
+            method: 'POST',
+            requestHeaders: {'auth': this.auth.token, 'content-type': 'application/json'},
+            sendData: JSON.encode({'username': username})
+        ).then((request) {
+            this.spinner.classes.add('hide');
+            this.auth.logIn(this.auth.token, redirect: true);
+        });
     }
 }
 

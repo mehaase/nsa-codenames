@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, Column, Enum, Integer, \
+from sqlalchemy import Boolean, Column, DateTime, Enum, Integer, \
                        String, Text, UniqueConstraint
 
 from model import Base
@@ -14,7 +14,7 @@ class User(Base):
     username = Column(String(255), unique=True)
     image_url = Column(Text)
     is_admin = Column(Boolean)
-    can_change_username = Column(Boolean)
+    added = Column(DateTime)
 
     OAUTH_PROVIDERS = ['twitter']
 
@@ -35,4 +35,4 @@ class User(Base):
         self.username = username
         self.image_url = '/static/img/default-user.png'
         self.is_admin = False
-        self.can_change_username = True
+        self.added = datetime.now()

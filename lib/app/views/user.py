@@ -1,7 +1,10 @@
 ''' Views for various authentication schemes. '''
 
-from flask import abort, g, request, session
+from datetime import datetime
+
+from flask import abort, g, request
 from flask.ext.classy import FlaskView, route
+from werkzeug.exceptions import BadRequest, Unauthorized
 
 from app.rest import error, json, success
 from model import User
@@ -17,55 +20,66 @@ class UserView(FlaskView):
             'id': None,
             'username': None,
             'image_url': None,
+            'is_admin': False,
         }
-
-        if 'user_id' in session:
-            user = self._get_current_user()
-
-            if user is None:
-                del session['user_id']
-            else:
-                response['id'] = user.id
-                response['username'] = user.username
-                response['image_url'] = user.image_url
-
-        return json(response)
-
-    @route('/current/username', methods=('POST',))
-    def change_username(self):
-        ''' Allow a user to change his/her own username -- but only once. '''
 
         user = self._get_current_user()
 
-        if user is None:
+        response = {
+            'id': user.id,
+            'username': user.username,
+            'image_url': user.image_url,
+            'is_admin': user.is_admin,
+        }
+
+        return json(response)
+
+    @route('/whoami', methods=('POST',))
+    def change_username(self):
+        '''
+        Allow a user to change his/her own username.
+
+        A username can only be changed within 15 minutes after creating an
+        account. This is done so that users can select their own username
+        after creating an account but cannot freely change their username
+        after establishing a reputation on this site.
+        '''
+
+        CHANGE_TIME = 15
+
+        try:
+            user = self._get_current_user()
+        except:
             return error('You are not logged in.', status=401)
 
-        if not user.can_change_username:
+        user_account_age = datetime.today() - user.added
+
+        if user_account_age.seconds > CHANGE_TIME * 60:
             return error(
-                'You are not allowed to change your username.',
+                'You are only allowed to change your username within' \
+                ' %d minutes of creating your account.' % CHANGE_TIME,
                 status=403
             )
 
-        username_json = request.get_json()
-        username = username_json['username']
-
-        if username == user.username:
-            return error(
-                'The new username is the same as the old username.',
-                status=400
-            )
-
-        user.username = username
-        user.can_change_username = False
+        request_json = request.get_json()
+        user.username = request_json['username']
         g.db.commit()
 
         return success('Username changed successfully.')
 
     def _get_current_user(self):
-        ''' Get the current user. '''
+        ''' Get a user by ID. '''
+
+        try:
+            user_id = int(g.unsign(request.headers['auth']))
+        except:
+            raise BadRequest("Invalid signature on auth token.")
 
         user = g.db.query(User) \
-                   .filter(User.id==session['user_id']) \
+                   .filter(User.id==user_id) \
                    .first()
+
+        if user is None:
+            raise Unauthorized("Your user ID (%d) is invalid." % user_id)
 
         return user
