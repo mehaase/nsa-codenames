@@ -1,0 +1,20 @@
+<div class="panel panel-primary panel-data-entry">
+  <div class="panel-heading">
+    <h3 class="panel-title">
+      Add A Codename…
+      <img class='spinner hide' src="/static/img/spinner-white.gif">
+    </h3>
+  </div>
+  <div class="panel-body">
+    <div ng-show='error != null' class="alert alert-danger">
+      {{error}}
+    </div>
+    <p>Enter a codename to create a new page.</p>
+    <p><input placeholder='Codename' ng-model='name'></p>
+    <button class='btn btn-primary'
+            ng-click='saveCodename()'
+            ng-disabled='disableButtons || name == ""'>
+      Create
+    </button>
+  </div>
+</div>

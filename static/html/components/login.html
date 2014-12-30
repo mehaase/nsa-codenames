@@ -1,4 +1,4 @@
-<div class="panel panel-primary">
+<div class="panel panel-primary panel-data-entry">
   <div class="panel-heading">
     <h3 class="panel-title">
       Please select a login provider…
@@ -19,7 +19,9 @@
       <p>This is your first time logging in. Welcome!</p>
       <p>Please select a username to use on this site.</p>
       <p><input placeholder='Username' ng-model='username'></p>
-      <button class='btn btn-primary' ng-click='saveUsername()'>
+      <button class='btn btn-primary'
+              ng-click='saveUsername()'
+              ng-disabled='disableButtons || username == ""'>
         Save
       </button>
     </div>

@@ -18,6 +18,14 @@ class MyRouteInitializer implements Function {
                 path: '/about',
                 view: '/static/html/views/about.html'
             ),
+            'add-codename': ngRoute(
+                path: '/add-codename',
+                view: '/static/html/views/add-codename.html'
+            ),
+            'codename': ngRoute(
+                path: '/cn/:slug',
+                view: '/static/html/views/codename.html'
+            ),
             'home': ngRoute(
                 defaultRoute: true,
                 path: '/',
@@ -35,10 +43,6 @@ class MyRouteInitializer implements Function {
             'search': ngRoute(
                 path: '/search',
                 view: '/static/html/views/search.html'
-            ),
-            'codename': ngRoute(
-                path: '/cn/:codename',
-                view: '/static/html/views/codename.html'
             ),
         });
     }
@@ -89,6 +93,7 @@ class NsaCodenamesAppModule extends Module {
             ..allowElement('a', attributes: ['href']);
 
         bind(AboutComponent);
+        bind(AddCodenameComponent);
         bind(AuthenticationController);
         bind(CodenameComponent);
         bind(CodenameResultComponent);
@@ -182,7 +187,45 @@ class AboutComponent {
             this.editable.classes.add('editable');
             this.editable.classes.remove('editing');
         });
+    }
+}
 
+@Component(
+    selector: 'add-codename',
+    templateUrl: '/static/html/components/add-codename.html',
+    useShadowDom: false
+)
+class AddCodenameComponent {
+    AuthenticationController auth;
+    Router router;
+
+    String name='', error;
+    Element spinner;
+    bool disableButtons = false;
+
+    AddCodenameComponent(this.auth, this.router);
+
+    void saveCodename() {
+        if (spinner == null) {
+            this.spinner = querySelector('img.spinner');
+        }
+
+        this.error = null;
+        this.spinner.classes.remove('hide');
+        HttpRequest.request(
+            '/index',
+            method: 'POST',
+            requestHeaders: {'auth': auth.token, 'content-type': 'application/json'},
+            sendData: JSON.encode({'name': this.name})
+        ).then((request) {
+            var response = JSON.decode(request.response);
+            this.router.go('codename', {'slug': response['slug']});
+        }).catchError((e) {
+            var response = JSON.decode(e.target.responseText);
+            this.error = response['message'];
+        }).whenComplete(() {
+            this.spinner.classes.add('hide');
+        });
     }
 }
 
@@ -309,7 +352,7 @@ class CodenameComponent {
     Codename codename;
 
     CodenameComponent(RouteProvider rp) {
-        String url = '/' + rp.parameters['codename'];
+        String url = '/' + rp.parameters['slug'];
         HttpRequest.getString(url).then(this.onDataLoaded);
     }
 
@@ -340,7 +383,6 @@ class CodenameResultComponent {
     @NgOneWay('codename')
     CodenameResult codename;
 }
-
 
 @Component(
     selector: 'nav',
@@ -494,7 +536,7 @@ class IndexComponent {
 class LoginComponent {
     AuthenticationController auth;
 
-    String redirectUrl, resourceOwnerKey, resourceOwnerSecret, username;
+    String redirectUrl, resourceOwnerKey, resourceOwnerSecret, username='';
     String apiUrl = '/authenticate/twitter/';
 
     bool disableButtons = false;
@@ -540,7 +582,7 @@ class LoginComponent {
         this.popupTimer = new Timer.periodic(
             new Duration(milliseconds: 500),
             (event) {
-                if (this.popup.closed) {
+                if (this.popup != null && this.popup.closed) {
                     this.disableButtons = false;
                     this.spinner.classes.add('hide');
                     this.popupTimer.cancel();
@@ -593,6 +635,7 @@ class LoginComponent {
     }
 
     void saveUsername() {
+        this.disableButtons = true;
         this.spinner.classes.remove('hide');
 
         HttpRequest.request(

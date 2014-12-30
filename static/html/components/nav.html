@@ -23,6 +23,10 @@
         <b class='caret'></b>
       </a>
       <ul class='dropdown-menu'>
+        <li ng-if='auth.isAdmin()'>
+          <a href='#/add-codename'>Add codename…</a>
+        </li>
+        <li ng-if='auth.isAdmin()' class="divider"></li>
         <li><a ng-click='auth.logOut()'>Log Out</a></li>
       </ul>
     </li>

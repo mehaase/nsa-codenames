@@ -34,6 +34,35 @@ textarea {
   }
 }
 
+.panel.panel-data-entry {
+  @media (min-width: @grid-float-breakpoint) {
+    display: block;
+    width: 60%;
+    margin: 0 auto;
+  }
+
+  button {
+    width: 100%;
+  }
+
+  img.spinner {
+    margin-top: -5px;
+  }
+
+  input {
+    width:100%;
+    text-align: center;
+  }
+
+  p {
+    font-weight: bold;
+  }
+
+  .panel-body {
+    text-align: center;
+  }
+}
+
 // Angular ====================================================================
 
 .ng-hide {
@@ -108,37 +137,6 @@ codename img {
   img.spinner {
     padding-left: 2px;
     padding-top: 2px;
-  }
-}
-
-// Login ======================================================================
-
-login {
-  @media (min-width: @grid-float-breakpoint) {
-    display: block;
-    width: 60%;
-    margin: 0 auto;
-  }
-
-  button {
-    width: 100%;
-  }
-
-  img.spinner {
-    margin-top: -5px;
-  }
-
-  input {
-    width:100%;
-    text-align: center;
-  }
-
-  p {
-    font-weight: bold;
-  }
-
-  .panel-body {
-    text-align: center;
   }
 }
 

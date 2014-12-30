@@ -221,7 +221,8 @@ class CodenameView(FlaskView):
 
         return success(
             'Codename "%s" created.' % codename.name,
-            url=url_for('CodenameView:get', slug=codename.slug)
+            url=url_for('CodenameView:get', slug=codename.slug),
+            slug=codename.slug
         )
 
     @route('/<slug>/images')
