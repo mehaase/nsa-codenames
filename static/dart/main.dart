@@ -85,6 +85,10 @@ class CurrentRoute {
 
 class NsaCodenamesAppModule extends Module {
     NsaCodenamesAppModule() {
+        NodeValidatorBuilder nodeValidator = new NodeValidatorBuilder.common()
+            ..allowHtml5()
+            ..allowElement('a', attributes: ['href']);
+
         bind(AboutComponent);
         bind(AuthenticationController);
         bind(CodenameComponent);
@@ -93,6 +97,7 @@ class NsaCodenamesAppModule extends Module {
         bind(IndexComponent);
         bind(LoginComponent);
         bind(NavComponent);
+        bind(NodeValidator, toValue: nodeValidator);
         bind(SearchComponent);
         bind(RouteInitializerFn, toImplementation: MyRouteInitializer);
         bind(NgRoutingUsePushState,
@@ -117,7 +122,8 @@ class AboutComponent {
         this.markdown = json['markdown'];
         this.html = context['markdown'].callMethod('toHTML', [this.markdown]);
 
-        Datetime dt = new DateTime.fromMillisecondsSinceEpoch(json['updated']);
+        int timestamp = json['updated'] * 1000; // Dart uses ms instead of s.
+        Datetime dt = new DateTime.fromMillisecondsSinceEpoch(timestamp);
         this.updated = '${dt.year.toString()}-'
                      + '${dt.month.toString().padLeft(2, '0')}-'
                      + '${dt.day.toString().padLeft(2, '0')}';
