@@ -20,5 +20,7 @@
         ng-disabled='disableDeleteButton'>
   <i class='fa fa-trash'></i>
   Delete This Codename
-  <img src='/static/img/spinner-white.gif' class='spinner hide'>
+  <img class='spinner'
+       ng-show='showSpinner'
+       src='/static/img/spinner-white.gif'>
 </button>

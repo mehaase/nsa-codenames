@@ -152,23 +152,19 @@ class AboutComponent {
     templateUrl: '/static/html/components/add-codename.html',
     useShadowDom: false
 )
-class AddCodenameComponent extends AttachAware {
+class AddCodenameComponent {
     AuthenticationController auth;
     Router router;
 
     String name='', error;
-    Element spinner;
-    bool disableButtons = false;
+    bool disableButtons = false, showSpinner = false;
 
     AddCodenameComponent(this.auth, this.router);
 
-    void attach() {
-        this.spinner = querySelector('img.spinner');
-    }
-
     void saveCodename() {
         this.error = null;
-        this.spinner.classes.remove('hide');
+        this.showSpinner = true;
+
         HttpRequest.request(
             '/index',
             method: 'POST',
@@ -181,7 +177,7 @@ class AddCodenameComponent extends AttachAware {
             var response = JSON.decode(e.target.responseText);
             this.error = response['message'];
         }).whenComplete(() {
-            this.spinner.classes.add('hide');
+            this.showSpinner = false;
         });
     }
 }
@@ -314,7 +310,7 @@ class CodenameComponent {
     Codename codename;
 
     String codenameUrl;
-    bool disableDeleteButton = false;
+    bool disableDeleteButton = false, showSpinner = false;
 
     CodenameComponent(this.auth, this.rp, this.router) {
         this.codenameUrl = '/' + this.rp.parameters['slug'];
@@ -329,8 +325,7 @@ class CodenameComponent {
                             + ' "${this.codename.name}"?';
 
         if (window.confirm(confirmation)) {
-            Element spinner = querySelector('img.spinner');
-            spinner.classes.remove('hide');
+            this.showSpinner = true;
             disableDeleteButton = true;
 
             HttpRequest.request(
@@ -339,6 +334,8 @@ class CodenameComponent {
                 requestHeaders: {'auth': auth.token}
             ).then((request) {
                 this.router.go('index', {});
+            }).whenComplete(() {
+                this.showSpinner = false;
             });
         }
     }
@@ -464,7 +461,7 @@ class IndexComponent {
     templateUrl: '/static/html/components/login.html',
     useShadowDom: false
 )
-class LoginComponent extends AttachAware {
+class LoginComponent {
     AuthenticationController auth;
 
     String redirectUrl, resourceOwnerKey, resourceOwnerSecret, username='';
@@ -473,17 +470,13 @@ class LoginComponent extends AttachAware {
     bool disableButtons = false;
     bool showPopupWarning = false;
     bool showUsernamePrompt = false;
+    bool showSpinner = false;
 
-    Element spinner;
     Window popup;
     Timer popupTimer;
 
     LoginComponent(AuthenticationController auth) {
         this.auth = auth;
-    }
-
-    void attach() {
-        this.spinner = querySelector('img.spinner');
     }
 
     void startTwitter() {
@@ -494,7 +487,7 @@ class LoginComponent extends AttachAware {
 
         this.disableButtons = true;
         HttpRequest.getString(this.apiUrl).then(this.continueTwitter);
-        this.spinner.classes.remove('hide');
+        this.showSpinner = true;
     }
 
     void continueTwitter(String jsonResponse) {
@@ -515,7 +508,7 @@ class LoginComponent extends AttachAware {
             (event) {
                 if (this.popup != null && this.popup.closed) {
                     this.disableButtons = false;
-                    this.spinner.classes.add('hide');
+                    this.showSpinner = false;
                     this.popupTimer.cancel();
                 }
             }
@@ -554,7 +547,7 @@ class LoginComponent extends AttachAware {
             sendData: JSON.encode(postData)
         ).then((request) {
             Map<String,String> response = JSON.decode(request.response);
-            this.spinner.classes.add('hide');
+            this.showSpinner = false;
 
             if (response['pick_username']) {
                 this.showUsernamePrompt = true;
@@ -567,7 +560,7 @@ class LoginComponent extends AttachAware {
 
     void saveUsername() {
         this.disableButtons = true;
-        this.spinner.classes.remove('hide');
+        this.showSpinner = true;
 
         HttpRequest.request(
             '/user/whoami',
@@ -575,8 +568,9 @@ class LoginComponent extends AttachAware {
             requestHeaders: {'auth': this.auth.token, 'content-type': 'application/json'},
             sendData: JSON.encode({'username': username})
         ).then((request) {
-            this.spinner.classes.add('hide');
             this.auth.logIn(this.auth.token, redirect: true);
+        }).whenComplete(() {
+            this.showSpinner = false;
         });
     }
 }
@@ -658,7 +652,7 @@ class SearchComponent {
     List<CodenameResult> results;
     Timer delay;
     String status = 'noQuery';
-    Element spinner;
+    bool showSpinner;
 
     SearchComponent() {
         results = new List<Codename>();
@@ -677,19 +671,15 @@ class SearchComponent {
     }
 
     void search() {
-        if (spinner == null) {
-            spinner = querySelector('img.spinner');
-        }
-
         if (query.trim() != '') {
             String url = '/search?q=' + this.query;
             HttpRequest.getString(url).then(this.onDataLoaded);
-            spinner.classes.remove('hide');
+            this.showSpinner = true;
         }
     }
 
     void onDataLoaded(String response) {
-        spinner.classes.add('hide');
+        this.showSpinner = false;
         Map searchResults = JSON.decode(response);
         results.clear();
 

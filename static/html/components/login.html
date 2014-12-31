@@ -2,7 +2,9 @@
   <div class="panel-heading">
     <h3 class="panel-title">
       Please select a login provider…
-      <img class='spinner hide' src="/static/img/spinner-white.gif">
+      <img class='spinner'
+           ng-show='showSpinner'
+           src="/static/img/spinner-white.gif">
     </h3>
   </div>
   <div class="panel-body">
