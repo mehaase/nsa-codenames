@@ -101,12 +101,13 @@ class NsaCodenamesAppModule extends Module {
         bind(IndexComponent);
         bind(HomeComponent);
         bind(LoginComponent);
+        bind(MarkdownComponent);
         bind(NavComponent);
-        bind(NodeValidator, toValue: nodeValidator);
-        bind(SearchComponent);
-        bind(RouteInitializerFn, toImplementation: MyRouteInitializer);
         bind(NgRoutingUsePushState,
              toValue: new NgRoutingUsePushState.value(false));
+        bind(NodeValidator, toValue: nodeValidator);
+        bind(RouteInitializerFn, toImplementation: MyRouteInitializer);
+        bind(SearchComponent);
     }
 }
 
@@ -118,74 +119,30 @@ class NsaCodenamesAppModule extends Module {
 class AboutComponent {
     AuthenticationController auth;
 
-    String html, markdown, originalMarkdown, updatedStr;
+    bool editable;
+    String markdown;
     DateTime updated;
-    bool disableButtons = false;
-    Element editable, spinner;
 
     AboutComponent(this.auth) {
-        HttpRequest.getString('/content/about').then(this.onDataLoaded);
-    }
+        this.editable = this.auth.isAdmin();
 
-    void onDataLoaded(String response) {
-        Map json = JSON.decode(response);
-        this.markdown = json['markdown'];
-
-        int timestamp = json['updated'] * 1000; // Dart uses ms instead of s.
-        this.updated = new DateTime.fromMillisecondsSinceEpoch(timestamp);
-
-        this.render();
-    }
-
-    void render() {
-        this.html = context['markdown'].callMethod('toHTML', [this.markdown]);
-
-        this.updatedStr = '${this.updated.year.toString()}-'
-                        + '${this.updated.month.toString().padLeft(2, '0')}-'
-                        + '${this.updated.day.toString().padLeft(2, '0')}';
-    }
-
-    void edit() {
-        if (editable == null) {
-            this.editable = querySelector('.editable');
-        }
-
-        if (editable != null) {
-            this.originalMarkdown = markdown;
-
-            this.editable.classes.remove('editable');
-            this.editable.classes.add('editing');
-        }
-    }
-
-    void discard() {
-        this.markdown = this.originalMarkdown;
-        this.originalMarkdown = null;
-        this.render();
-
-        this.editable.classes.add('editable');
-        this.editable.classes.remove('editing');
+        HttpRequest.getString('/content/about').then((response) {
+            Map json = JSON.decode(response);
+            this.markdown = json['markdown'];
+            // Dart uses milliseconds instead of seconds:
+            int timestamp = json['updated'] * 1000;
+            this.updated = new DateTime.fromMillisecondsSinceEpoch(timestamp);
+        });
     }
 
     void save() {
-        if (this.spinner == null) {
-            this.spinner = querySelector('img.spinner');
-        }
-
-        this.disableButtons = true;
-        this.spinner.classes.remove('hide');
-
-        HttpRequest.request(
+        return HttpRequest.request(
             '/content/about',
             method: 'PUT',
             requestHeaders: {'auth': auth.token, 'content-type': 'application/json'},
             sendData: JSON.encode({'markdown': this.markdown})
-        ).then((request) {
+        ).then((response) {
             this.updated = new DateTime.now();
-            this.disableButtons = false;
-            this.spinner.classes.add('hide');
-            this.editable.classes.add('editable');
-            this.editable.classes.remove('editing');
         });
     }
 }
@@ -195,7 +152,7 @@ class AboutComponent {
     templateUrl: '/static/html/components/add-codename.html',
     useShadowDom: false
 )
-class AddCodenameComponent {
+class AddCodenameComponent extends AttachAware {
     AuthenticationController auth;
     Router router;
 
@@ -205,11 +162,11 @@ class AddCodenameComponent {
 
     AddCodenameComponent(this.auth, this.router);
 
-    void saveCodename() {
-        if (spinner == null) {
-            this.spinner = querySelector('img.spinner');
-        }
+    void attach() {
+        this.spinner = querySelector('img.spinner');
+    }
 
+    void saveCodename() {
         this.error = null;
         this.spinner.classes.remove('hide');
         HttpRequest.request(
@@ -430,75 +387,25 @@ class NavComponent {
 class HomeComponent {
     AuthenticationController auth;
 
-    String html, markdown, originalMarkdown, updatedStr;
-    DateTime updated;
-    bool disableButtons = false;
-    Element editable, spinner;
+    String markdown;
+    bool editable;
 
     HomeComponent(this.auth) {
-        HttpRequest.getString('/content/home').then(this.onDataLoaded);
-    }
+        this.editable = this.auth.isAdmin();
 
-    void onDataLoaded(String response) {
-        Map json = JSON.decode(response);
-        this.markdown = json['markdown'];
-
-        int timestamp = json['updated'] * 1000; // Dart uses ms instead of s.
-        this.updated = new DateTime.fromMillisecondsSinceEpoch(timestamp);
-
-        this.render();
-    }
-
-    void render() {
-        this.html = context['markdown'].callMethod('toHTML', [this.markdown]);
-
-        this.updatedStr = '${this.updated.year.toString()}-'
-                        + '${this.updated.month.toString().padLeft(2, '0')}-'
-                        + '${this.updated.day.toString().padLeft(2, '0')}';
-    }
-
-    void edit() {
-        if (editable == null) {
-            this.editable = querySelector('.editable');
-        }
-
-        if (editable != null) {
-            this.originalMarkdown = markdown;
-
-            this.editable.classes.remove('editable');
-            this.editable.classes.add('editing');
-        }
-    }
-
-    void discard() {
-        this.markdown = this.originalMarkdown;
-        this.originalMarkdown = null;
-        this.render();
-
-        this.editable.classes.add('editable');
-        this.editable.classes.remove('editing');
+        HttpRequest.getString('/content/home').then((response) {
+            Map json = JSON.decode(response);
+            this.markdown = json['markdown'];
+        });
     }
 
     void save() {
-        if (this.spinner == null) {
-            this.spinner = querySelector('img.spinner');
-        }
-
-        this.disableButtons = true;
-        this.spinner.classes.remove('hide');
-
-        HttpRequest.request(
+        return HttpRequest.request(
             '/content/home',
             method: 'PUT',
             requestHeaders: {'auth': auth.token, 'content-type': 'application/json'},
             sendData: JSON.encode({'markdown': this.markdown})
-        ).then((request) {
-            this.updated = new DateTime.now();
-            this.disableButtons = false;
-            this.spinner.classes.add('hide');
-            this.editable.classes.add('editable');
-            this.editable.classes.remove('editing');
-        });
+        );
     }
 }
 
@@ -557,7 +464,7 @@ class IndexComponent {
     templateUrl: '/static/html/components/login.html',
     useShadowDom: false
 )
-class LoginComponent {
+class LoginComponent extends AttachAware {
     AuthenticationController auth;
 
     String redirectUrl, resourceOwnerKey, resourceOwnerSecret, username='';
@@ -575,11 +482,11 @@ class LoginComponent {
         this.auth = auth;
     }
 
-    void startTwitter() {
-        if (this.spinner == null) {
-            this.spinner = querySelector('img.spinner');
-        }
+    void attach() {
+        this.spinner = querySelector('img.spinner');
+    }
 
+    void startTwitter() {
         if (this.popup != null) {
             this.popup.close();
             this.popup = null;
@@ -670,6 +577,63 @@ class LoginComponent {
         ).then((request) {
             this.spinner.classes.add('hide');
             this.auth.logIn(this.auth.token, redirect: true);
+        });
+    }
+}
+
+@Component(
+    selector: 'markdown',
+    templateUrl: '/static/html/components/markdown.html',
+    useShadowDom: false
+)
+class MarkdownComponent implements ScopeAware {
+    @NgTwoWay('text')
+    String markdown;
+
+    @NgOneWay('save-handler')
+    Function saveHandler;
+
+    @NgOneWay('editable')
+    bool editable = false;
+
+    @NgAttr('rows')
+    int rows = 20;
+
+    bool editing;
+    String html, originalMarkdown;
+    bool disableButtons = false, showSpinner = false;
+
+    void set scope(Scope scope) {
+        scope.watch('markdown', (v, p) {
+            render();
+        });
+    }
+
+    void render() {
+        if (markdown != null) {
+            this.html = context['markdown'].callMethod('toHTML', [this.markdown]);
+        }
+    }
+
+    void edit() {
+        this.originalMarkdown = markdown;
+        this.editing = true;
+    }
+
+    void discard() {
+        this.markdown = this.originalMarkdown;
+        this.originalMarkdown = null;
+        this.editing = false;
+    }
+
+    void save() {
+        this.disableButtons = true;
+        this.showSpinner = true;
+
+        saveHandler().whenComplete(() {
+            this.disableButtons = false;
+            this.showSpinner = false;
+            this.editing = false;
         });
     }
 }

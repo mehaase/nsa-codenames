@@ -5,28 +5,8 @@
   <p><a href="#/about" class="btn btn-primary btn-lg">Learn more</a></p>
 </div>
 
-<div class='editable' ng-class='{"editable-active": auth.isAdmin()}'>
-  <button id='edit-icon' class='btn btn-primary btn-small' ng-click='edit()'>
-    <i class='fa fa-pencil'></i>
-    Edit
-  </button>
-  <div id='content' ng-bind-html='html'></div>
-  <div id='editor'>
-    <textarea rows=20 ng-model='markdown' ng-keyup='render()'></textarea>
-    <button class='btn btn-default pull-left'
-            ng-click='discard()'
-            ng-disabled='disableButtons'>
-      <i class='fa fa-trash'></i>
-      Discard
-    </button>
-    <button class='btn btn-primary pull-right'
-            ng-click='save()'
-            ng-disabled='disableButtons'>
-      <i class='fa fa-save'></i>
-      Save
-      <img src='/static/img/spinner-white.gif'
-           class='spinner hide pull-right'>
-    </button>
-  </div>
-  <div class='clear'></div>
-</div>
+<markdown text='markdown'
+          editable='editable'
+          save-handler='save'
+          rows='20'>
+</markdown>

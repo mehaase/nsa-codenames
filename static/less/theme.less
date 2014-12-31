@@ -15,7 +15,7 @@ a {
 }
 
 button img.spinner {
-  margin: 1px 0 0 2px;
+  margin: -4px -3px 0 -1px;
 }
 
 textarea {
@@ -84,9 +84,10 @@ codename img {
   margin: 1em 0em;
 }
 
-// Editable ===================================================================
+// Markdown ===================================================================
 
-.editable {
+markdown {
+  display: block;
   position: relative;
   transition: background-color @fast-animation;
 
@@ -106,43 +107,39 @@ codename img {
   #editor {
     display: none;
   }
-}
 
-.editable-active:hover {
-  background-color: #f9f9f9;
+  .editable:hover {
+    background-color: #f9f9f9;
 
-  #edit-icon {
-    opacity: 1.0;
-  }
-}
-
-.editing {
-  #content {
-    width: 49%;
-    float: left;
-  }
-
-  #edit-icon {
-    display: none;
-  }
-
-  #editor {
-    display: block;
-    width: 49%;
-    float: right;
-
-    textarea {
-      display: block;
-      width: 100%;
-      margin-bottom: 1em;
+    #edit-icon {
+      opacity: 1.0;
     }
   }
 
-  img.spinner {
-    padding-left: 2px;
-    padding-top: 2px;
+  .editing {
+    #content {
+      width: 49%;
+      float: left;
+    }
+
+    #edit-icon {
+      display: none;
+    }
+
+    #editor {
+      display: block;
+      width: 49%;
+      float: right;
+
+      textarea {
+        display: block;
+        width: 100%;
+        margin-bottom: 1em;
+      }
+    }
   }
 }
+
 
 // Search =====================================================================
 

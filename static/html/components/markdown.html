@@ -1,0 +1,26 @@
+<div ng-class='{"editable": editable && !editing, "editing": editing}'>
+  <button id='edit-icon' class='btn btn-primary btn-small' ng-click='edit()'>
+    <i class='fa fa-pencil'></i>
+    Edit
+  </button>
+  <div id='content' ng-bind-html='html'></div>
+  <div id='editor'>
+    <textarea rows=20 ng-model='markdown' ng-keyup='render()'></textarea>
+    <button class='btn btn-default pull-left'
+            ng-click='discard()'
+            ng-disabled='disableButtons'>
+      <i class='fa fa-trash'></i>
+      Discard
+    </button>
+    <button class='btn btn-primary pull-right'
+            ng-click='save()'
+            ng-disabled='disableButtons'>
+      <i class='fa fa-save'></i>
+      Save
+      <img class='spinner'
+           ng-show='showSpinner'
+           src='/static/img/spinner-white.gif'>
+    </button>
+  </div>
+  <div class='clear'></div>
+</div>
