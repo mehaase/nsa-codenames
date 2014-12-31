@@ -1,12 +1,12 @@
 from datetime import datetime
 
-from flask import g, request
+from flask import g, jsonify, request
 from flask.ext.classy import FlaskView
-from werkzeug.exceptions import BadRequest, Unauthorized
+from werkzeug.exceptions import BadRequest, NotFound, Unauthorized
 
 from app import flask_app
 from app.authorization import requires_admin
-from app.rest import date_to_timestamp, json, not_found, success
+from app.rest import date_to_timestamp
 from model import Content, User
 
 class ContentView(FlaskView):
@@ -22,34 +22,35 @@ class ContentView(FlaskView):
     def get(self, name):
         ''' Get a piece of Markdown content. '''
 
-        content = g.db.query(Content).filter(Content.name == name).first()
+        content = self._get_content_by_name(name)
 
-        if content is None:
-            return not_found()
-
-        content_json = {
-            'markdown': content.markdown,
-            'updated': date_to_timestamp(content.updated),
-        }
-
-        return json(content_json)
+        return jsonify(
+            markdown=content.markdown,
+            updated=date_to_timestamp(content.updated)
+        )
 
     @requires_admin
     def put(self, name):
         ''' Update a piece of Markdown content. '''
 
-        content = g.db.query(Content).filter(Content.name == name).first()
-
-        if content is None:
-            return not_found()
-
         content_json = request.get_json()
 
+        content = self._get_content_by_name(name)
         content.markdown = content_json['markdown']
         content.updated = datetime.today()
 
         g.db.commit()
 
-        return success('Content "%s" updated.' % name)
+        return jsonify(message='Content "%s" updated.' % name)
 
+    def _get_content_by_name(self, name):
+        ''' Get a content object by name. '''
 
+        content = g.db.query(Content) \
+                      .filter(Content.name == name) \
+                      .first()
+
+        if content is None:
+            raise NotFound('Content named "%s" does not exist.' % name)
+
+        return content

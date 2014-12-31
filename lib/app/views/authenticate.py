@@ -2,11 +2,11 @@
 
 from datetime import datetime
 
-from flask import g, json as flask_json, render_template, request
+from flask import g, json, jsonify, render_template, request
 from flask.ext.classy import FlaskView, route
 from requests_oauthlib import OAuth1Session
 
-from app.rest import json, success, url_for
+from app.rest import url_for
 from model import User
 
 class TwitterAuthenticationView(FlaskView):
@@ -36,13 +36,11 @@ class TwitterAuthenticationView(FlaskView):
 
         response = oauth.fetch_request_token(request_token_url)
 
-        response = {
-            'url': oauth.authorization_url(authorization_url),
-            'resource_owner_key': response['oauth_token'],
-            'resource_owner_secret': response['oauth_token_secret']
-        }
-
-        return json(response)
+        return jsonify(
+            url=oauth.authorization_url(authorization_url),
+            resource_owner_key=response['oauth_token'],
+            resource_owner_secret=response['oauth_token_secret']
+        )
 
     @route('/callback')
     def callback(self):
@@ -93,11 +91,10 @@ class TwitterAuthenticationView(FlaskView):
 
         g.db.commit()
 
-        return success(
-            'Twitter authentication is successful.',
+        return jsonify(
+            message='Twitter authentication is successful.',
             pick_username=pick_username,
             token=g.sign(user.id)
-
         )
 
     def _get_access_token(self, oauth_json):
@@ -137,7 +134,7 @@ class TwitterAuthenticationView(FlaskView):
 
         response = oauth.get(user_info_url)
 
-        return flask_json.loads(response.text)
+        return json.loads(response.text)
 
     def _url(self, path):
         ''' Construct a Twitter API URL. '''

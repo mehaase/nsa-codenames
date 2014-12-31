@@ -2,12 +2,11 @@
 
 from datetime import datetime
 
-from flask import abort, g, request
+from flask import abort, g, jsonify, request
 from flask.ext.classy import FlaskView, route
 from werkzeug.exceptions import BadRequest, Unauthorized
 
 from app.authorization import requires_login
-from app.rest import error, json, success
 from model import User
 
 class UserView(FlaskView):
@@ -18,14 +17,12 @@ class UserView(FlaskView):
     def whoami(self):
         ''' Return information about the current logged in user. '''
 
-        response = {
-            'id': g.user.id,
-            'username': g.user.username,
-            'image_url': g.user.image_url,
-            'is_admin': g.user.is_admin,
-        }
-
-        return json(response)
+        return jsonify(
+            id=g.user.id,
+            username=g.user.username,
+            image_url=g.user.image_url,
+            is_admin=g.user.is_admin
+        )
 
     @route('/whoami', methods=('POST',))
     @requires_login
@@ -44,14 +41,12 @@ class UserView(FlaskView):
         user_account_age = datetime.today() - g.user.added
 
         if user_account_age.seconds > CHANGE_TIME * 60:
-            return error(
-                'You are only allowed to change your username within' \
-                ' %d minutes of creating your account.' % CHANGE_TIME,
-                status=403
-            )
+            message =  'You are only allowed to change your username within' \
+                       ' %d minutes of creating your account.' % CHANGE_TIME,
+            raise Unauthorized(message)
 
         request_json = request.get_json()
         g.user.username = request_json['username']
         g.db.commit()
 
-        return success('Username changed successfully.')
+        return jsonify(message='Username changed successfully.')

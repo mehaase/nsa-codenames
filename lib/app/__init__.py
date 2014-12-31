@@ -1,6 +1,6 @@
 """ The main application package. """
 
-from flask import Flask, g
+from flask import Flask, g, jsonify, make_response, request
 from flask.ext.assets import Environment, Bundle
 from flask_failsafe import failsafe
 from itsdangerous import Signer
@@ -50,10 +50,37 @@ def bootstrap(debug=False, debug_db=False):
 
     # Run the bootstrap.
     init_flask(flask_app, config)
-    init_flask_assets(flask_app, config)
+    init_errors(flask_app, config)
+    init_webassets(flask_app, config)
     init_views(flask_app, config)
 
     return flask_app
+
+def init_errors(flask_app, config):
+    ''' Initialize error handlers. '''
+
+    def http_error_handler(error):
+        '''
+        An error handler that will convert errors to JSON format if necessary.
+        '''
+
+        # Should use a real mime parser here…
+        mimetype = request.headers.get('accept', '').strip()
+
+        if mimetype.startswith('application/json'):
+            response = jsonify(message=error.description)
+        else:
+            response = make_response(error.description)
+            response.headers['Content-type'] = 'text/plain'
+
+        response.status_code = error.code
+
+        return response
+
+    http_status_codes = list(range(400,418)) + list(range(500,506))
+
+    for http_status_code in http_status_codes:
+        flask_app.errorhandler(http_status_code)(http_error_handler)
 
 def init_flask(flask_app, config):
     """ Initialize Flask configuration and hooks. """
@@ -92,7 +119,27 @@ def init_flask(flask_app, config):
 
         g.debug = flask_app.debug
 
-def init_flask_assets(flask_app, config):
+def init_views(flask_app, config):
+    """ Initialize views. """
+
+    import app.views.angular
+
+    from app.views.authenticate import TwitterAuthenticationView
+    TwitterAuthenticationView.register(
+        flask_app,
+        route_base='/authenticate/twitter'
+    )
+
+    from app.views.codename import CodenameView
+    CodenameView.register(flask_app, route_base='/')
+
+    from app.views.content import ContentView
+    ContentView.register(flask_app, route_base='/content')
+
+    from app.views.user import UserView
+    UserView.register(flask_app, route_base='/user')
+
+def init_webassets(flask_app, config):
     """ Initialize Flask-Assets extension. """
 
     assets = Environment(flask_app)
@@ -118,22 +165,3 @@ def init_flask_assets(flask_app, config):
 
     assets.register("js_all", js)
 
-def init_views(flask_app, config):
-    """ Initialize views. """
-
-    import app.views.angular
-
-    from app.views.authenticate import TwitterAuthenticationView
-    TwitterAuthenticationView.register(
-        flask_app,
-        route_base='/authenticate/twitter'
-    )
-
-    from app.views.codename import CodenameView
-    CodenameView.register(flask_app, route_base='/')
-
-    from app.views.content import ContentView
-    ContentView.register(flask_app, route_base='/content')
-
-    from app.views.user import UserView
-    UserView.register(flask_app, route_base='/user')
