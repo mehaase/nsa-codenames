@@ -309,18 +309,26 @@ class CodenameComponent {
     @NgOneWay('codename')
     Codename codename;
 
-    String codenameUrl;
-    bool disableDeleteButton = false, showSpinner = false;
+    String codenameUrl,
+           newReferenceAnnotation,
+           newReferenceUrl;
+
+    bool disableDeleteButton = false,
+         editable = false,
+         showAddReferenceForm = false,
+         showSpinner = false;
 
     CodenameComponent(this.auth, this.rp, this.router) {
+        this.editable = this.auth.isAdmin();
         this.codenameUrl = '/' + this.rp.parameters['slug'];
+
         HttpRequest.getString(this.codenameUrl).then((response) {
             Map json = JSON.decode(response);
             this.codename = new Codename(json);
         });
     }
 
-    void delete() {
+    void deleteCodename() {
         String confirmation = 'Are you sure you want to delete'
                             + ' "${this.codename.name}"?';
 
@@ -338,6 +346,58 @@ class CodenameComponent {
                 this.showSpinner = false;
             });
         }
+    }
+
+    void deleteReference(index) {
+        Reference ref = codename.references[index];
+
+        return HttpRequest.request(
+            ref.url,
+            method: 'DELETE',
+            requestHeaders: {'auth': auth.token}
+        ).then((response) {
+            codename.references.removeAt(index);
+        });
+    }
+
+    void saveCodename() {
+        Map codenameJson = {
+            'description': codename.description,
+            'summary': codename.summary
+        };
+
+        HttpRequest.request(
+            this.codenameUrl,
+            method: 'PUT',
+            requestHeaders: {'auth': auth.token, 'content-type': 'application/json'},
+            sendData: JSON.encode(codenameJson)
+        );
+    }
+
+    void addReference() {
+        Map referenceJson = {
+            'url': this.newReferenceUrl,
+            'annotation': this.newReferenceAnnotation
+        };
+
+        return HttpRequest.request(
+            this.codenameUrl + '/references',
+            method: 'POST',
+            requestHeaders: {'auth': auth.token, 'content-type': 'application/json'},
+            sendData: JSON.encode(referenceJson)
+        ).then((request) {
+            Map json = JSON.decode(request.response);
+
+            codename.references.add(new Reference({
+                'url': json['url'],
+                'externalUrl': this.newReferenceUrl,
+                'annotation': this.newReferenceAnnotation
+            }));
+        }).whenComplete(() {
+            this.newReferenceAnnotation = '';
+            this.newReferenceUrl = '';
+            this.showAddReferenceForm = false;
+        });
     }
 }
 
@@ -582,7 +642,7 @@ class LoginComponent {
 )
 class MarkdownComponent implements ScopeAware {
     @NgTwoWay('text')
-    String markdown;
+    String text;
 
     @NgOneWay('save-handler')
     Function saveHandler;
@@ -594,29 +654,29 @@ class MarkdownComponent implements ScopeAware {
     int rows = 20;
 
     bool editing;
-    String html, originalMarkdown;
+    String html, originalText;
     bool disableButtons = false, showSpinner = false;
 
     void set scope(Scope scope) {
-        scope.watch('markdown', (v, p) {
+        scope.watch('text', (v, p) {
             render();
         });
     }
 
     void render() {
-        if (markdown != null) {
-            this.html = context['markdown'].callMethod('toHTML', [this.markdown]);
+        if (text != null) {
+            this.html = context['markdown'].callMethod('toHTML', [this.text]);
         }
     }
 
     void edit() {
-        this.originalMarkdown = markdown;
+        this.originalText = text;
         this.editing = true;
     }
 
     void discard() {
-        this.markdown = this.originalMarkdown;
-        this.originalMarkdown = null;
+        this.text = this.originalText;
+        this.originalText = null;
         this.editing = false;
     }
 

@@ -2,21 +2,58 @@
 <img ng-src='{{codename.images[0].url}}'>
 
 <h2>Summary</h2>
-<div>{{codename.summary}}</div>
+<markdown text='codename.summary'
+          editable='editable'
+          save-handler='saveCodename'
+          rows='10'>
+</markdown>
 
 <h2>Description</h2>
-<div>{{codename.description}}</div>
+<markdown text='codename.description'
+          editable='editable'
+          save-handler='saveCodename'
+          rows='20'>
+</markdown>
 
 <h2>References</h2>
-<ul>
+<p ng-show='codename.references.length == 0'>
+  This codename has no references.
+</p>
+<ul class='references'>
   <li ng-repeat='reference in codename.references'>
     <a href="{{reference.externalUrl}}">{{reference.annotation}}</a>
+    <button class='btn btn-primary btn-xs'
+            ng-show='editable'
+            ng-click='deleteReference($index)'>
+      <i class='fa fa-trash'></i>
+      Remove Reference
+    </button>
+  </li>
+  <li ng-show='editable && showAddReferenceForm'>
+    <input placeholder='URL' ng-model='newReferenceUrl'>
+    <input placeholder='Annotation' ng-model='newReferenceAnnotation'>
+    <button class='btn btn-link btn-sm' ng-click='addReference()'>
+      <i class='fa fa-save'></i>
+      Save
+    </button>
+    <button class='btn btn-link btn-sm' ng-click='showAddReferenceForm=false'>
+      <i class='fa fa-trash'></i>
+      Discard
+    </button>
   </li>
 </ul>
+<p ng-show='editable'>
+  <button class='btn btn-primary btn-sm'
+          ng-show='!showAddReferenceForm'
+          ng-click='showAddReferenceForm=true'>
+    <i class='fa fa-plus-circle'></i>
+    Add Reference
+  </button>
+</p>
 
 <button ng-show='auth.isAdmin()'
         class='btn btn-primary pull-right'
-        ng-click='delete()'
+        ng-click='deleteCodename()'
         ng-disabled='disableDeleteButton'>
   <i class='fa fa-trash'></i>
   Delete This Codename

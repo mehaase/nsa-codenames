@@ -5,7 +5,7 @@
   </button>
   <div id='content' ng-bind-html='html'></div>
   <div id='editor'>
-    <textarea rows=20 ng-model='markdown' ng-keyup='render()'></textarea>
+    <textarea rows='{{rows}}' ng-model='text' ng-keyup='render()'></textarea>
     <button class='btn btn-default pull-left'
             ng-click='discard()'
             ng-disabled='disableButtons'>

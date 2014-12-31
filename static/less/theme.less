@@ -18,6 +18,11 @@ button img.spinner {
   margin: -4px -3px 0 -1px;
 }
 
+input[type=text], input[type=password] {
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
 textarea {
   border: 1px solid @gray-lighter;
 }
@@ -80,8 +85,25 @@ codename-result {
   clear: both;
 }
 
-codename img {
-  margin: 1em 0em;
+codename {
+  img {
+    margin: 1em 0em;
+  }
+
+  ul.references {
+    li button.btn-primary {
+      margin-left: 1em;
+      visibility: hidden;
+    }
+
+    li button.btn-link {
+      padding: 0 0 5px 8px;
+    }
+
+    li:hover button {
+      visibility: visible;
+    }
+  }
 }
 
 // Markdown ===================================================================
