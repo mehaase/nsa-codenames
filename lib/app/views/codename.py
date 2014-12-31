@@ -10,8 +10,8 @@ from app.authorization import requires_admin, requires_login
 from app.rest import date_to_timestamp, url_for
 from model import Codename, Image, Reference
 
-DEFAULT_IMAGE_URL = '/static/img/angry-neighbor.png'
-DEFAULT_THUMB_URL = '/static/img/angry-neighbor-thumb.png'
+DEFAULT_IMAGE_URL = '/static/img/default-codename.png'
+DEFAULT_THUMB_URL = '/static/img/default-codename-thumb.png'
 
 class CodenameView(FlaskView):
     ''' API for Codename and related models. '''

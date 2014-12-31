@@ -611,6 +611,7 @@ class LoginComponent {
 
             if (response['pick_username']) {
                 this.showUsernamePrompt = true;
+                this.disableButtons = false;
                 this.auth.logIn(response['token'], redirect: false);
             } else {
                 this.auth.logIn(response['token'], redirect: true);
