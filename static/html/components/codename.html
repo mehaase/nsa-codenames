@@ -13,3 +13,13 @@
     <a href="{{reference.externalUrl}}">{{reference.annotation}}</a>
   </li>
 </ul>
+
+<button ng-show='auth.isAdmin()'
+        class='btn btn-primary pull-right'
+        ng-click='delete()'
+        ng-disabled='disableDeleteButton'>
+  <i class='fa fa-trash'></i>
+  Delete This Codename
+  <img src='/static/img/spinner-white.gif'
+           class='spinner hide pull-right'>
+</button>

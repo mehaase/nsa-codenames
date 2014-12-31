@@ -38,7 +38,7 @@ class Codename(Base):
 
         self.name = name
         self.slug = slugify(name)
-        self.summary = ''
-        self.description = ''
+        self.summary = 'Summary placeholder text.'
+        self.description = 'Summary placeholder text.'
         self.added = datetime.today()
         self.updated = datetime.today()

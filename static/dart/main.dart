@@ -345,20 +345,45 @@ class Codename {
 
 @Component(
     selector: 'codename',
-    templateUrl: '/static/html/components/codename.html'
+    templateUrl: '/static/html/components/codename.html',
+    useShadowDom: false
 )
 class CodenameComponent {
+    AuthenticationController auth;
+    RouteProvider rp;
+    Router router;
+
     @NgOneWay('codename')
     Codename codename;
 
-    CodenameComponent(RouteProvider rp) {
-        String url = '/' + rp.parameters['slug'];
-        HttpRequest.getString(url).then(this.onDataLoaded);
+    String codenameUrl;
+    bool disableDeleteButton = false;
+
+    CodenameComponent(this.auth, this.rp, this.router) {
+        this.codenameUrl = '/' + this.rp.parameters['slug'];
+        HttpRequest.getString(this.codenameUrl).then((response) {
+            Map json = JSON.decode(response);
+            this.codename = new Codename(json);
+        });
     }
 
-    void onDataLoaded(String response) {
-        Map json = JSON.decode(response);
-        this.codename = new Codename(json);
+    void delete() {
+        String confirmation = 'Are you sure you want to delete'
+                            + ' "${this.codename.name}"?';
+
+        if (window.confirm(confirmation)) {
+            Element spinner = querySelector('img.spinner');
+            spinner.classes.remove('hide');
+            disableDeleteButton = true;
+
+            HttpRequest.request(
+                this.codenameUrl,
+                method: 'DELETE',
+                requestHeaders: {'auth': auth.token}
+            ).then((request) {
+                this.router.go('index', {});
+            });
+        }
     }
 }
 
@@ -474,7 +499,6 @@ class HomeComponent {
             this.editable.classes.add('editable');
             this.editable.classes.remove('editing');
         });
-
     }
 }
 
@@ -497,29 +521,29 @@ class IndexComponent {
     Map<String, List<CodenameResult>> codenamesByInitial;
 
     IndexComponent() {
-        letters = new List<String>.generate(
+        this.letters = new List<String>.generate(
             26,
             (int index) => new String.fromCharCode(index + 0x41)
         );
 
-        codenamesByInitial = new Map.fromIterable(
+        this.codenamesByInitial = new Map.fromIterable(
             letters,
             key: (item) => item,
             value: (item) => new List<String>()
         );
 
-        HttpRequest.getString('/index').then(this.onDataLoaded);
-    }
+        HttpRequest.getString('/index').then((response) {
+            Map json = JSON.decode(response);
 
-    void onDataLoaded(String response) {
-        Map json = JSON.decode(response);
-        for (Map codenameJson in json['codenames']) {
-            String initial = codenameJson['name'].substring(0, 1);
+            for (Map codenameJson in json['codenames']) {
+                String initial = codenameJson['name'].substring(0, 1)
+                                                     .toUpperCase();
 
-            this.codenamesByInitial[initial].add(
-                new CodenameResult(codenameJson)
-            );
-        }
+                this.codenamesByInitial[initial].add(
+                    new CodenameResult(codenameJson)
+                );
+            }
+        });
     }
 
     void scroll(String letter) {

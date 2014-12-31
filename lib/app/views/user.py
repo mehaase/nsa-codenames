@@ -6,6 +6,7 @@ from flask import abort, g, request
 from flask.ext.classy import FlaskView, route
 from werkzeug.exceptions import BadRequest, Unauthorized
 
+from app.authorization import requires_login
 from app.rest import error, json, success
 from model import User
 
@@ -13,28 +14,21 @@ class UserView(FlaskView):
     ''' Information about users. '''
 
     @route('/whoami')
+    @requires_login
     def whoami(self):
         ''' Return information about the current logged in user. '''
 
         response = {
-            'id': None,
-            'username': None,
-            'image_url': None,
-            'is_admin': False,
-        }
-
-        user = self._get_current_user()
-
-        response = {
-            'id': user.id,
-            'username': user.username,
-            'image_url': user.image_url,
-            'is_admin': user.is_admin,
+            'id': g.user.id,
+            'username': g.user.username,
+            'image_url': g.user.image_url,
+            'is_admin': g.user.is_admin,
         }
 
         return json(response)
 
     @route('/whoami', methods=('POST',))
+    @requires_login
     def change_username(self):
         '''
         Allow a user to change his/her own username.
@@ -47,12 +41,7 @@ class UserView(FlaskView):
 
         CHANGE_TIME = 15
 
-        try:
-            user = self._get_current_user()
-        except:
-            return error('You are not logged in.', status=401)
-
-        user_account_age = datetime.today() - user.added
+        user_account_age = datetime.today() - g.user.added
 
         if user_account_age.seconds > CHANGE_TIME * 60:
             return error(
@@ -62,24 +51,7 @@ class UserView(FlaskView):
             )
 
         request_json = request.get_json()
-        user.username = request_json['username']
+        g.user.username = request_json['username']
         g.db.commit()
 
         return success('Username changed successfully.')
-
-    def _get_current_user(self):
-        ''' Get a user by ID. '''
-
-        try:
-            user_id = int(g.unsign(request.headers['auth']))
-        except:
-            raise BadRequest("Invalid signature on auth token.")
-
-        user = g.db.query(User) \
-                   .filter(User.id==user_id) \
-                   .first()
-
-        if user is None:
-            raise Unauthorized("Your user ID (%d) is invalid." % user_id)
-
-        return user

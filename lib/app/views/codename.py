@@ -5,6 +5,7 @@ from flask.ext.classy import FlaskView, route
 from sqlalchemy.exc import IntegrityError
 
 from app import flask_app
+from app.authorization import requires_admin, requires_login
 from app.rest import date_to_timestamp, error, json, not_found, success, url_for
 from model import Codename, Image, Reference
 
@@ -14,6 +15,7 @@ DEFAULT_THUMB_URL = '/static/img/angry-neighbor-thumb.png'
 class CodenameView(FlaskView):
     ''' API for Codename and related models. '''
 
+    @requires_admin
     def delete(self, slug):
         ''' Delete a codename. '''
 
@@ -28,6 +30,7 @@ class CodenameView(FlaskView):
         return success('Codename "%s" deleted.' % codename.name)
 
     @route('/<slug>/references/<int:reference_id>', methods=('DELETE',))
+    @requires_admin
     def delete_reference(self, slug, reference_id):
         ''' Delete a reference. '''
 
@@ -50,6 +53,7 @@ class CodenameView(FlaskView):
         return success(message % (reference.id, codename.name))
 
     @route('/<slug>/images/<int:image_id>', methods=('DELETE',))
+    @requires_admin
     def delete_image(self, slug, image_id):
         ''' Delete an image from a codename. '''
 
@@ -196,6 +200,7 @@ class CodenameView(FlaskView):
         return json({'codenames': codenames_json})
 
     @route('/index', methods=('POST',))
+    @requires_admin
     def post(self):
         ''' Create a new codename. '''
 
@@ -226,12 +231,14 @@ class CodenameView(FlaskView):
         )
 
     @route('/<slug>/images')
+    @requires_admin
     def post_image(self, slug):
         ''' Add an image to a codename. '''
 
         raise NotImplementedError("You can't add an image yet!")
 
     @route('/<slug>/references', methods=('POST',))
+    @requires_admin
     def post_reference(self, slug):
         ''' Add a reference to a codename. '''
 
@@ -260,6 +267,7 @@ class CodenameView(FlaskView):
             )
         )
 
+    @requires_admin
     def put(self, slug):
         ''' Update a codename's summary or description. '''
 
@@ -279,6 +287,7 @@ class CodenameView(FlaskView):
         return success('Codename "%s" updated.' % codename.name)
 
     @route('/<slug>/references/<int:reference_id>', methods=('PUT',))
+    @requires_admin
     def put_reference(self, slug, reference_id):
         ''' Update a reference. '''
 
