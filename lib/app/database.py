@@ -13,7 +13,11 @@ def get_engine(config, debug=False):
         connect_string = 'mysql+pymysql://%(username)s:%(password)s@' \
                          '%(host)s/%(schema)s?charset=utf8'
 
-        _engine = sqlalchemy.create_engine(connect_string % config, echo=debug)
+        _engine = sqlalchemy.create_engine(
+            connect_string % config,
+            echo=debug,
+            pool_recycle=3600
+        )
         _sessionmaker = sessionmaker(bind=_engine)
 
     return _engine

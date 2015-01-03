@@ -1,5 +1,44 @@
 <h1>{{codename.name}}</h1>
-<img ng-src='{{codename.images[0].url}}'>
+<div class='carousel'>
+  <img ng-src='{{codename.images[currentImageIndex].url}}'>
+
+  <p class='attribution'>
+    Contributed by <i class='fa fa-user'></i> johndoe.
+    25 awesomes.
+  </p>
+
+  <button class='btn backward' ng-click='backward()'>
+    <i class='fa fa-arrow-circle-left'></i>
+  </button>
+
+  <button class='btn forward' ng-click='forward()'>
+    <i class='fa fa-arrow-circle-right'></i>
+  </button>
+
+  <div class='paginator' ng-show='codename.images.length > 1'>
+    <input ng-repeat='image in codename.images'
+           type='radio'
+           name='imageSelector'
+           class='btn btn-primary'
+           ng-checked='currentImageIndex == $index'
+           ng-click='currentImageIndex = $index'>
+
+    <button class='btn btn-default btn-xs pull-left'
+            ng-click='vote()'>
+      <i class='fa fa-thumbs-up'></i>
+      Awesome
+    </button>
+
+    <button class='btn btn-default btn-xs pull-right'
+            ng-click='upload()'>
+      <i class='fa fa-cloud-upload'></i>
+      Submit Artwork
+    </button>
+  </div>
+
+
+  <div class='clear'></div>
+</div>
 
 <h2>Summary</h2>
 <markdown text='codename.summary'

@@ -1,10 +1,13 @@
 <div ng-class='{"editable": editable && !editing, "editing": editing}'>
-  <button id='edit-icon' class='btn btn-primary btn-small' ng-click='edit()'>
+  <button id='edit-icon'
+          ng-if='editable'
+          class='btn btn-primary btn-small'
+          ng-click='edit()'>
     <i class='fa fa-pencil'></i>
     Edit
   </button>
   <div id='content' ng-bind-html='html'></div>
-  <div id='editor'>
+  <div id='editor' ng-if='editable'>
     <textarea rows='{{rows}}' ng-model='text' ng-keyup='render()'></textarea>
     <button class='btn btn-default pull-left'
             ng-click='discard()'

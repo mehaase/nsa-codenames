@@ -14,11 +14,13 @@
     Search for codenames by typing one or more keywords.
   </p>
   <p ng-show='status=="queryHasNoResults"'>
-    <strong>Nothing found!</strong> No codenames match your query. Please try
+    No codenames match your query. Please try
     searching for something else.
   </p>
   <p ng-show='status=="queryHasResults"'>
-    Found {{results.length}} codename matching '{{lastQuery}}'…
+    Found {{results.length}}
+    codename<span ng-show='results.length!=1'>s</span>
+    matching '{{lastQuery}}'…
   </p>
 </div>
 

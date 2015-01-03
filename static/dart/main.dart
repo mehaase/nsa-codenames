@@ -318,6 +318,8 @@ class CodenameComponent {
          showAddReferenceForm = false,
          showSpinner = false;
 
+    int currentImageIndex = 0;
+
     CodenameComponent(this.auth, this.rp, this.router) {
         this.editable = this.auth.isAdmin();
         this.codenameUrl = '/' + this.rp.parameters['slug'];
@@ -398,6 +400,25 @@ class CodenameComponent {
             this.newReferenceUrl = '';
             this.showAddReferenceForm = false;
         });
+    }
+
+    void vote() {
+        print("VOTE");
+    }
+
+    void upload() {
+        print("UPLOAD");
+    }
+
+    void forward() {
+        this.currentImageIndex = (this.currentImageIndex + 1) %
+                                 this.codename.images.length;
+    }
+
+    void backward() {
+        int delta = this.codename.images.length - 1;
+        this.currentImageIndex = (this.currentImageIndex + delta) %
+                                 this.codename.images.length;
     }
 }
 
