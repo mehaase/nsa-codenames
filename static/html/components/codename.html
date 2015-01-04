@@ -1,5 +1,5 @@
 <h1>{{codename.name}}</h1>
-<div class='carousel'>
+<div class='carousel' ng-class='{"show-hud": showHud}'>
   <img ng-src='{{codename.images[currentImageIndex].url}}'>
 
   <p class='attribution'>
@@ -7,11 +7,15 @@
     25 awesomes.
   </p>
 
-  <button class='btn backward' ng-click='backward()'>
+  <button class='btn backward'
+          ng-click='backward()'
+          ng-show='codename.images.length > 1'>
     <i class='fa fa-arrow-circle-left'></i>
   </button>
 
-  <button class='btn forward' ng-click='forward()'>
+  <button class='btn forward'
+          ng-click='forward()'
+          ng-show='codename.images.length > 1'>
     <i class='fa fa-arrow-circle-right'></i>
   </button>
 
@@ -22,22 +26,32 @@
            class='btn btn-primary'
            ng-checked='currentImageIndex == $index'
            ng-click='currentImageIndex = $index'>
-
-    <button class='btn btn-default btn-xs pull-left'
-            ng-click='vote()'>
-      <i class='fa fa-thumbs-up'></i>
-      Awesome
-    </button>
-
-    <button class='btn btn-default btn-xs pull-right'
-            ng-click='upload()'>
-      <i class='fa fa-cloud-upload'></i>
-      Submit Artwork
-    </button>
   </div>
 
+  <button class='btn btn-default btn-xs pull-left'
+          ng-click='vote()'
+          ng-disabled="disableCarouselButtons">
+    <i class='fa fa-thumbs-up'></i>
+    Awesome
+  </button>
+
+  <button class='btn btn-default btn-xs pull-right'
+          ng-click='selectFile()'
+          ng-disabled='disableCarouselButtons'>
+    <i class='fa fa-cloud-upload'></i>
+    Submit Artwork
+    <div class="progress progress-striped" ng-show='showProgress'>
+      <div class="progress-bar" style="width: 50%"></div>
+    </div>
+  </button>
+
+  <input type="file" class='hide' ng-change='upload($event)'>
 
   <div class='clear'></div>
+</div>
+
+<div class="alert alert-danger" ng-hide='status == ""'>
+  <strong>Error:</strong> {{status}}
 </div>
 
 <h2>Summary</h2>
@@ -90,7 +104,7 @@
   </button>
 </p>
 
-<button ng-show='auth.isAdmin()'
+<button ng-if='auth.isAdmin()'
         class='btn btn-primary pull-right'
         ng-click='deleteCodename()'
         ng-disabled='disableDeleteButton'>

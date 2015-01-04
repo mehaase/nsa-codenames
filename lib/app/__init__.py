@@ -86,6 +86,14 @@ def init_flask(flask_app, config):
     """ Initialize Flask configuration and hooks. """
 
     config_dict = dict(config.items('flask'))
+
+    # Try to convert numeric arguments to integers.
+    for k, v in config_dict.items():
+        try:
+            config_dict[k] = int(v)
+        except:
+            pass
+
     flask_app.config.update(**config_dict)
 
     # Disable caching for static assets in debug mode, otherwise

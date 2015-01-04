@@ -1,11 +1,16 @@
 from datetime import datetime
+import hashlib
+from io import BytesIO
+import os
 
-from flask import g, jsonify, request
+from flask import g, jsonify, request, send_from_directory
 from flask.ext.classy import FlaskView, route
+from PIL import Image as PILImage
 from sqlalchemy.exc import IntegrityError
-from werkzeug.exceptions import BadRequest, Conflict
+from werkzeug.exceptions import BadRequest, Conflict, NotFound
 
 from app import flask_app
+import app.config
 from app.authorization import requires_admin, requires_login
 from app.rest import date_to_timestamp, url_for
 from model import Codename, Image, Reference
@@ -112,9 +117,9 @@ class CodenameView(FlaskView):
 
         codename = self._get_codename_by_slug(slug)
         image = self._get_image_for_codename(image_id, codename)
+        data_dir = app.config.get_path('data')
 
-        # Strip '/static' prefix:
-        return flask_app.send_static_file(image.path[8:])
+        return send_from_directory(data_dir, image.path)
 
     @route('/<slug>/references/<int:reference_id>')
     def get_reference(self, slug, reference_id):
@@ -134,9 +139,9 @@ class CodenameView(FlaskView):
 
         codename = self._get_codename_by_slug(slug)
         image = self._get_image_for_codename(image_id, codename)
+        data_dir = app.config.get_path('data')
 
-        # Strip '/static' prefix:
-        return flask_app.send_static_file(image.thumbPath[8:])
+        return send_from_directory(data_dir, image.thumb_path)
 
     @route('/index')
     def index(self):
@@ -196,12 +201,76 @@ class CodenameView(FlaskView):
             slug=codename.slug
         )
 
-    @route('/<slug>/images')
-    @requires_admin
+    @route('/<slug>/images', methods=('POST',))
+    @requires_login
     def post_image(self, slug):
-        ''' Add an image to a codename. '''
+        '''
+        Add an image to a codename.
 
-        raise NotImplementedError("You can't add an image yet!")
+        This only supports image/png and it expects images to be _exactly_
+        720x400 pixels.
+        '''
+
+        REQUIRED_WIDTH = 720
+        REQUIRED_HEIGHT = 400
+
+        THUMB_WIDTH = 144
+        THUMB_HEIGHT = 80
+
+        codename = self._get_codename_by_slug(slug)
+
+        # Parse the image to make sure it is valid.
+        content_type = request.headers.get('content-type', '')
+        image = PILImage.open(BytesIO(request.data))
+        width, height = image.size
+
+        if content_type.lower() != 'image/png' or image.format != 'PNG':
+                raise BadRequest('Content type must be a valid image/png.')
+
+        if width != REQUIRED_WIDTH or height != REQUIRED_HEIGHT:
+            message = "Images must be exactly %d x %d pixels."
+            args = (REQUIRED_WIDTH, REQUIRED_HEIGHT)
+            raise BadRequest(message % args)
+
+        # Save the file (if not already present).
+        filename = hashlib.sha1(image.tobytes()).hexdigest() + '.png'
+        dir_ = app.config.get_path('data')
+        path = os.path.join(dir_, filename)
+
+        if not os.path.exists(path):
+            image.save(path)
+
+        # Create and save a thumbnail (if not already present).
+        image.thumbnail((THUMB_WIDTH, THUMB_HEIGHT))
+        thumb_filename = hashlib.sha1(image.tobytes()).hexdigest() + '.png'
+        thumb_path = os.path.join(dir_, thumb_filename)
+
+        if not os.path.exists(thumb_path):
+            image.save(thumb_path)
+
+        # Create database object.
+        image_obj = Image(filename, thumb_filename)
+        codename.images.append(image_obj)
+        g.db.commit()
+
+        # Render response.
+        url = url_for(
+            'CodenameView:get_image',
+            slug=slug,
+            image_id=image_obj.id
+        )
+
+        thumb_url = url_for(
+            'CodenameView:get_thumb',
+            slug=slug,
+            image_id=image_obj.id
+        )
+
+        return jsonify(
+            url=url,
+            thumbUrl=thumb_url,
+            replace=(len(codename.images) == 1)
+        )
 
     @route('/<slug>/references', methods=('POST',))
     @requires_admin

@@ -7,4 +7,5 @@ npm
 
 # build deps
 curl
+python-dev
 unzip

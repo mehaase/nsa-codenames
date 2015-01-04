@@ -3,6 +3,7 @@ flask
 Flask-Assets
 flask-classy
 Flask-Failsafe
+Pillow
 PyMySQL
 python-slugify
 requests-oauth

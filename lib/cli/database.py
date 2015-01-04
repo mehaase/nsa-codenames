@@ -50,14 +50,6 @@ class DatabaseCli(cli.BaseCli):
             sagittis mi a faucibus. Etiam lacinia id ex eu accumsan. Duis at
             venenatis tortor, nec ultricies enim.
         ''')
-        aggravated_avatar.images.append(Image(
-            '/static/img/default-codename.png',
-            '/static/img/default-codename-thumb.png'
-        ))
-        aggravated_avatar.images.append(Image(
-            '/static/img/default-codename.png',
-            '/static/img/default-codename-thumb.png'
-        ))
         aggravated_avatar.references.append(Reference(
             'http://yahoo.com', 'Lorem ipsum dolor sit amet.'
         ))
@@ -75,10 +67,6 @@ class DatabaseCli(cli.BaseCli):
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed porta
             sagittis mi a faucibus.
         ''')
-        amused_bouche.images.append(Image(
-            '/static/img/default-codename.png',
-            '/static/img/default-codename-thumb.png'
-        ))
         amused_bouche.references.append(Reference(
             'http://apple.com', 'Lorem ipsum dolor sit amet.'
         ))
@@ -94,10 +82,6 @@ class DatabaseCli(cli.BaseCli):
             sagittis mi a faucibus. Etiam lacinia id ex eu accumsan. Duis at
             venenatis tortor, nec ultricies enim.
         ''')
-        bored_boxer.images.append(Image(
-            '/static/img/default-codename.png',
-            '/static/img/default-codename-thumb.png'
-        ))
         bored_boxer.references.append(Reference(
             'http://ibm.com', 'Lorem ipsum dolor sit amet.'
         ))

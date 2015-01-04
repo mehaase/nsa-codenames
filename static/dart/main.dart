@@ -139,7 +139,7 @@ class AboutComponent {
         return HttpRequest.request(
             '/content/about',
             method: 'PUT',
-            requestHeaders: {'auth': auth.token, 'content-type': 'application/json'},
+            requestHeaders: {'Auth': auth.token, 'Content-Type': 'application/json'},
             sendData: JSON.encode({'markdown': this.markdown})
         ).then((response) {
             this.updated = new DateTime.now();
@@ -168,7 +168,7 @@ class AddCodenameComponent {
         HttpRequest.request(
             '/index',
             method: 'POST',
-            requestHeaders: {'auth': auth.token, 'content-type': 'application/json'},
+            requestHeaders: {'Auth': auth.token, 'Content-Type': 'application/json'},
             sendData: JSON.encode({'name': this.name})
         ).then((request) {
             var response = JSON.decode(request.response);
@@ -311,11 +311,15 @@ class CodenameComponent {
 
     String codenameUrl,
            newReferenceAnnotation,
-           newReferenceUrl;
+           newReferenceUrl,
+           status='';
 
-    bool disableDeleteButton = false,
+    bool disableCarouselButtons = false,
+         disableDeleteButton = false,
          editable = false,
          showAddReferenceForm = false,
+         showHud = false,
+         showProgress = false,
          showSpinner = false;
 
     int currentImageIndex = 0;
@@ -341,7 +345,7 @@ class CodenameComponent {
             HttpRequest.request(
                 this.codenameUrl,
                 method: 'DELETE',
-                requestHeaders: {'auth': auth.token}
+                requestHeaders: {'Auth': auth.token}
             ).then((request) {
                 this.router.go('index', {});
             }).whenComplete(() {
@@ -356,7 +360,7 @@ class CodenameComponent {
         return HttpRequest.request(
             ref.url,
             method: 'DELETE',
-            requestHeaders: {'auth': auth.token}
+            requestHeaders: {'Auth': auth.token}
         ).then((response) {
             codename.references.removeAt(index);
         });
@@ -371,7 +375,7 @@ class CodenameComponent {
         HttpRequest.request(
             this.codenameUrl,
             method: 'PUT',
-            requestHeaders: {'auth': auth.token, 'content-type': 'application/json'},
+            requestHeaders: {'Auth': auth.token, 'Content-Type': 'application/json'},
             sendData: JSON.encode(codenameJson)
         );
     }
@@ -385,7 +389,7 @@ class CodenameComponent {
         return HttpRequest.request(
             this.codenameUrl + '/references',
             method: 'POST',
-            requestHeaders: {'auth': auth.token, 'content-type': 'application/json'},
+            requestHeaders: {'Auth': auth.token, 'Content-Type': 'application/json'},
             sendData: JSON.encode(referenceJson)
         ).then((request) {
             Map json = JSON.decode(request.response);
@@ -406,8 +410,72 @@ class CodenameComponent {
         print("VOTE");
     }
 
-    void upload() {
-        print("UPLOAD");
+    void selectFile() {
+        InputElement fileEl = querySelector('input[type=file]');
+
+        if (fileEl != null) {
+            fileEl.click();
+        }
+    }
+
+    void upload(Event e) {
+        if (e.target.files.length == 0) {
+            return;
+        }
+
+        Element progress = querySelector('div.progress-bar');
+        String url = '/' + this.codename.slug + '/images';
+        Map headers = {'Auth': auth.token, 'Content-Type': 'image/png'};
+
+        this.status = '';
+        this.disableCarouselButtons = true;
+        this.showHud = true;
+        this.showProgress = true;
+
+        progress.style.width = '0%';
+
+        HttpRequest request = new HttpRequest();
+        request.open('POST', url);
+        request.setRequestHeader('Accept', 'application/json');
+        request.setRequestHeader('Auth', auth.token);
+        request.setRequestHeader('Content-Type', 'image/png');
+
+        request.onProgress.listen((event) {
+            if (event.lengthComputable) {
+                double percentComplete = (event.loaded / event.total) * 100;
+                progress.style.width = percentComplete.toInt().toString() + '%';
+            }
+        });
+
+        request.onLoad.listen((event) {
+            Map<String,String> response = JSON.decode(event.target.response);
+
+            if (event.target.status == 200) {
+                Image image = new Image(response);
+
+                if (response['replace'] && this.codename.images.length > 0) {
+                    this.codename.images[0] = image;
+                } else {
+                    this.codename.images.add(image);
+                    this.currentImageIndex = this.codename.images.length - 1;
+                }
+            } else {
+                this.status = response['message'];
+                Element warning = querySelector('div.alert');
+
+                if (warning != null) {
+                    warning.scrollIntoView();
+                }
+            }
+
+            new Timer(new Duration(seconds: 1), () {
+                this.disableCarouselButtons = false;
+                this.showHud = false;
+                this.showProgress = false;
+            });
+        });
+
+        request.send(e.target.files[0]);
     }
 
     void forward() {
@@ -481,7 +549,7 @@ class HomeComponent {
         return HttpRequest.request(
             '/content/home',
             method: 'PUT',
-            requestHeaders: {'auth': auth.token, 'content-type': 'application/json'},
+            requestHeaders: {'Auth': auth.token, 'Content-Type': 'application/json'},
             sendData: JSON.encode({'markdown': this.markdown})
         );
     }
@@ -647,7 +715,7 @@ class LoginComponent {
         HttpRequest.request(
             '/user/whoami',
             method: 'POST',
-            requestHeaders: {'auth': this.auth.token, 'content-type': 'application/json'},
+            requestHeaders: {'Auth': this.auth.token, 'Content-Type': 'application/json'},
             sendData: JSON.encode({'username': username})
         ).then((request) {
             this.auth.logIn(this.auth.token, redirect: true);
