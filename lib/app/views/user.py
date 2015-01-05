@@ -6,14 +6,14 @@ from flask import abort, g, jsonify, request
 from flask.ext.classy import FlaskView, route
 from werkzeug.exceptions import BadRequest, Unauthorized
 
-from app.authorization import requires_login
+from app.authorization import login_required
 from model import User
 
 class UserView(FlaskView):
     ''' Information about users. '''
 
     @route('/whoami')
-    @requires_login
+    @login_required
     def whoami(self):
         ''' Return information about the current logged in user. '''
 
@@ -25,7 +25,7 @@ class UserView(FlaskView):
         )
 
     @route('/whoami', methods=('POST',))
-    @requires_login
+    @login_required
     def change_username(self):
         '''
         Allow a user to change his/her own username.

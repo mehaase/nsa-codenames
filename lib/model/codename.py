@@ -2,7 +2,7 @@ from datetime import datetime
 
 from slugify import slugify
 from sqlalchemy import Column, DateTime, Integer, String, Text
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship
 
 from model import Base
 from model.image import Image

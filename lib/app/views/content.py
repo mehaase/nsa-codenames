@@ -5,7 +5,7 @@ from flask.ext.classy import FlaskView
 from werkzeug.exceptions import BadRequest, NotFound, Unauthorized
 
 from app import flask_app
-from app.authorization import requires_admin
+from app.authorization import admin_required
 from app.rest import date_to_timestamp
 from model import Content, User
 
@@ -29,7 +29,7 @@ class ContentView(FlaskView):
             updated=date_to_timestamp(content.updated)
         )
 
-    @requires_admin
+    @admin_required
     def put(self, name):
         ''' Update a piece of Markdown content. '''
 

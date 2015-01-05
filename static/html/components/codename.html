@@ -2,9 +2,16 @@
 <div class='carousel' ng-class='{"show-hud": showHud}'>
   <img ng-src='{{codename.images[currentImageIndex].url}}'>
 
-  <p class='attribution'>
-    Contributed by <i class='fa fa-user'></i> johndoe.
-    25 awesomes.
+  <p class='attribution'
+     ng-if='codename.images[currentImageIndex].contributor != null'>
+    Contributed by
+    <strong>{{codename.images[currentImageIndex].contributor}}</strong>.
+    {{codename.images[currentImageIndex].votes}} awesomes.
+  </p>
+
+  <p class='attribution'
+     ng-if='codename.images[currentImageIndex].contributor == null'>
+    Please log in to submit your own PNG artwork in 720x400 resolution!
   </p>
 
   <button class='btn backward'
@@ -28,8 +35,9 @@
            ng-click='currentImageIndex = $index'>
   </div>
 
-  <button class='btn btn-default btn-xs pull-left'
+  <button class='btn btn-xs pull-left'
           ng-click='vote()'
+          ng-class='codename.images[currentImageIndex].voted ? "btn-success" : "btn-default"'
           ng-disabled="disableCarouselButtons">
     <i class='fa fa-thumbs-up'></i>
     Awesome

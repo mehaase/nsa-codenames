@@ -328,8 +328,12 @@ class CodenameComponent {
         this.editable = this.auth.isAdmin();
         this.codenameUrl = '/' + this.rp.parameters['slug'];
 
-        HttpRequest.getString(this.codenameUrl).then((response) {
-            Map json = JSON.decode(response);
+        HttpRequest.request(
+            this.codenameUrl,
+            method: 'GET',
+            requestHeaders: {'Auth': this.auth.token != null ? this.auth.token :  ''}
+        ).then((request) {
+            Map json = JSON.decode(request.response);
             this.codename = new Codename(json);
         });
     }
@@ -345,7 +349,7 @@ class CodenameComponent {
             HttpRequest.request(
                 this.codenameUrl,
                 method: 'DELETE',
-                requestHeaders: {'Auth': auth.token}
+                requestHeaders: {'Auth': this.auth.token}
             ).then((request) {
                 this.router.go('index', {});
             }).whenComplete(() {
@@ -360,7 +364,7 @@ class CodenameComponent {
         return HttpRequest.request(
             ref.url,
             method: 'DELETE',
-            requestHeaders: {'Auth': auth.token}
+            requestHeaders: {'Auth': this.auth.token}
         ).then((response) {
             codename.references.removeAt(index);
         });
@@ -389,7 +393,7 @@ class CodenameComponent {
         return HttpRequest.request(
             this.codenameUrl + '/references',
             method: 'POST',
-            requestHeaders: {'Auth': auth.token, 'Content-Type': 'application/json'},
+            requestHeaders: {'Auth': this.auth.token, 'Content-Type': 'application/json'},
             sendData: JSON.encode(referenceJson)
         ).then((request) {
             Map json = JSON.decode(request.response);
@@ -407,10 +411,35 @@ class CodenameComponent {
     }
 
     void vote() {
-        print("VOTE");
+        if (this.auth.token == null) {
+            window.alert('Please log in to upload artwork.');
+            return;
+        }
+
+        Image currentImage = this.codename.images[this.currentImageIndex];
+        String method = currentImage.voted ? 'DELETE' : 'POST';
+
+        this.disableCarouselButtons = true;
+
+        return HttpRequest.request(
+            currentImage.url + '/vote',
+            method: method,
+            requestHeaders: {'Auth': auth.token}
+        ).then((request) {
+            Map json = JSON.decode(request.response);
+            currentImage.voted = json['voted'];
+            currentImage.votes = json['votes'];
+        }).whenComplete(() {
+            this.disableCarouselButtons = false;
+        });
     }
 
     void selectFile() {
+        if (this.auth.token == null) {
+            window.alert('Please log in to upload artwork.');
+            return;
+        }
+
         InputElement fileEl = querySelector('input[type=file]');
 
         if (fileEl != null) {
@@ -556,11 +585,18 @@ class HomeComponent {
 }
 
 class Image {
-    String thumbUrl, url;
+    String contributor, thumbUrl, url;
+    Integer votes;
+    Boolean voted;
 
     Image(Map json) {
+        this.contributor = json['contributor']['username'];
         this.thumbUrl = json['thumbUrl'];
         this.url = json['url'];
+        this.voted = json['voted'];
+        this.votes = json['votes'];
+
+        print(json);
     }
 }
 

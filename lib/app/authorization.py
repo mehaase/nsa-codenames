@@ -5,7 +5,22 @@ from werkzeug.exceptions import BadRequest, Forbidden, Unauthorized
 
 from model import User
 
-def requires_login(original_function):
+def login_optional(original_function):
+    '''
+    A decorator that checks if a user is logged in.
+
+    If the user is logged in, then the user object will be attached to 'g'.
+    If the user is not logged in, then g.user will be None.
+    '''
+
+    @wraps(original_function)
+    def wrapper(*args, **kwargs):
+        g.user = _get_user_from_auth_header(required=False)
+        return original_function(*args, **kwargs)
+
+    return wrapper
+
+def login_required(original_function):
     '''
     A decorator that requires a user to be logged in.
 
@@ -16,12 +31,12 @@ def requires_login(original_function):
 
     @wraps(original_function)
     def wrapper(*args, **kwargs):
-        g.user = _get_user_from_auth_header()
+        g.user = _get_user_from_auth_header(required=True)
         return original_function(*args, **kwargs)
 
     return wrapper
 
-def requires_admin(original_function):
+def admin_required(original_function):
     '''
     A decorator that requires a logged in user to be an admin.
 
@@ -31,7 +46,7 @@ def requires_admin(original_function):
 
     @wraps(original_function)
     def wrapper(*args, **kwargs):
-        user = _get_user_from_auth_header()
+        user = _get_user_from_auth_header(required=True)
 
         if not user.is_admin:
             raise Forbidden("This request requires administrator privileges.")
@@ -42,11 +57,12 @@ def requires_admin(original_function):
 
     return wrapper
 
-def _get_user_from_auth_header():
+def _get_user_from_auth_header(required=True):
     '''
     Try to read an auth token and load a corresponding user.
 
-    Throws an exception if the auth token or user are invalid.
+    If <required> is True, then this throws an exception on an
+    invalid auth token or user ID.
     '''
 
     try:
@@ -55,6 +71,9 @@ def _get_user_from_auth_header():
                    .filter(User.id==user_id) \
                    .one()
     except:
-        raise Unauthorized("Invalid auth token.")
+        if required:
+            raise Unauthorized("Invalid auth token.")
+        else:
+            return None
 
     return user

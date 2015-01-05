@@ -13,7 +13,10 @@ class Reference(Base):
     url = Column(String(255))
     annotation = Column(String(255))
 
-    codename_id = Column(Integer, ForeignKey('codename.id'))
+    codename_id = Column(
+        Integer,
+        ForeignKey('codename.id', name='fk_reference_codename_id')
+    )
 
     def __init__(self, url, annotation):
         ''' Constructor. '''

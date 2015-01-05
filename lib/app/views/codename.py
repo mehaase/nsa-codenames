@@ -11,9 +11,10 @@ from werkzeug.exceptions import BadRequest, Conflict, NotFound
 
 from app import flask_app
 import app.config
-from app.authorization import requires_admin, requires_login
+from app.authorization import admin_required, login_optional, login_required
 from app.rest import date_to_timestamp, url_for
-from model import Codename, Image, Reference
+from model import Codename, Image, Reference, User
+from model.image import image_join_user
 
 DEFAULT_IMAGE_URL = '/static/img/default-codename.png'
 DEFAULT_THUMB_URL = '/static/img/default-codename-thumb.png'
@@ -21,7 +22,7 @@ DEFAULT_THUMB_URL = '/static/img/default-codename-thumb.png'
 class CodenameView(FlaskView):
     ''' API for Codename and related models. '''
 
-    @requires_admin
+    @admin_required
     def delete(self, slug):
         ''' Delete a codename. '''
 
@@ -33,7 +34,7 @@ class CodenameView(FlaskView):
         return jsonify(message='Codename "%s" deleted.' % codename.name)
 
     @route('/<slug>/references/<int:reference_id>', methods=('DELETE',))
-    @requires_admin
+    @admin_required
     def delete_reference(self, slug, reference_id):
         ''' Delete a reference. '''
 
@@ -48,7 +49,7 @@ class CodenameView(FlaskView):
         return jsonify(message=message % (reference.id, codename.name))
 
     @route('/<slug>/images/<int:image_id>', methods=('DELETE',))
-    @requires_admin
+    @admin_required
     def delete_image(self, slug, image_id):
         ''' Delete an image from a codename. '''
 
@@ -62,6 +63,26 @@ class CodenameView(FlaskView):
         message = 'Image %d deleted from codename "%s".'
         return jsonify(message=message % (image.id, codename.name))
 
+    @route('/<slug>/images/<int:image_id>/vote', methods=('DELETE',))
+    @login_required
+    def delete_image_vote(self, slug, image_id):
+        ''' Remove a vote for an image. '''
+
+        codename = self._get_codename_by_slug(slug)
+        image = self._get_image_for_codename(image_id, codename)
+
+        if g.user in image.voters:
+            image.voters.remove(g.user)
+            image.votes -= 1
+
+        g.db.commit()
+
+        return jsonify(
+            voted=False,
+            votes=image.votes
+        )
+
+    @login_optional
     def get(self, slug):
         ''' Get a codename. '''
 
@@ -80,11 +101,16 @@ class CodenameView(FlaskView):
 
         if len(codename.images) == 0:
             codename_json['images'].append({
+                'contributor': {'username': None},
                 'url': DEFAULT_IMAGE_URL,
                 'thumbUrl': DEFAULT_THUMB_URL,
+                'voted': False,
+                'votes': 0,
             })
         else:
             for image in codename.images:
+                voted = g.user in image.voters if g.user is not None else False
+
                 codename_json['images'].append({
                     'url': url_for(
                         'CodenameView:get_image',
@@ -96,6 +122,9 @@ class CodenameView(FlaskView):
                         slug=codename.slug,
                         image_id=image.id
                     ),
+                    'contributor': {'username': image.contributor.username},
+                    'voted': voted,
+                    'votes': image.votes,
                 })
 
         for reference in codename.references:
@@ -120,6 +149,27 @@ class CodenameView(FlaskView):
         data_dir = app.config.get_path('data')
 
         return send_from_directory(data_dir, image.path)
+
+    @route('/<slug>/images/<int:image_id>/vote')
+    @login_optional
+    def get_image_vote(self, slug, image_id):
+        ''' Get a user's vote status. '''
+
+        codename = self._get_codename_by_slug(slug)
+        image = self._get_image_for_codename(image_id, codename)
+
+        if g.user is not None:
+            vote = g.db.query(Image) \
+                       .join(Image.voters) \
+                       .filter(User.id==g.user.id, Image.id==image_id) \
+                       .count()
+        else:
+            vote = 0
+
+        return jsonify(
+            voted=(vote > 0),
+            votes=image.votes
+        )
 
     @route('/<slug>/references/<int:reference_id>')
     def get_reference(self, slug, reference_id):
@@ -171,7 +221,7 @@ class CodenameView(FlaskView):
         return jsonify(codenames=codenames_json)
 
     @route('/index', methods=('POST',))
-    @requires_admin
+    @admin_required
     def post(self):
         ''' Create a new codename. '''
 
@@ -202,7 +252,7 @@ class CodenameView(FlaskView):
         )
 
     @route('/<slug>/images', methods=('POST',))
-    @requires_login
+    @login_required
     def post_image(self, slug):
         '''
         Add an image to a codename.
@@ -249,7 +299,7 @@ class CodenameView(FlaskView):
             image.save(thumb_path)
 
         # Create database object.
-        image_obj = Image(filename, thumb_filename)
+        image_obj = Image(filename, thumb_filename, g.user)
         codename.images.append(image_obj)
         g.db.commit()
 
@@ -269,11 +319,32 @@ class CodenameView(FlaskView):
         return jsonify(
             url=url,
             thumbUrl=thumb_url,
-            replace=(len(codename.images) == 1)
+            contributor={'username': g.user.username},
+            replace=(len(codename.images) == 1),
+            votes=0
+        )
+
+    @route('/<slug>/images/<int:image_id>/vote', methods=('POST',))
+    @login_required
+    def post_image_vote(self, slug, image_id):
+        ''' Register a vote for an image. '''
+
+        codename = self._get_codename_by_slug(slug)
+        image = self._get_image_for_codename(image_id, codename)
+
+        if g.user not in image.voters:
+            image.voters.append(g.user)
+            image.votes += 1
+
+        g.db.commit()
+
+        return jsonify(
+            voted=True,
+            votes=image.votes
         )
 
     @route('/<slug>/references', methods=('POST',))
-    @requires_admin
+    @admin_required
     def post_reference(self, slug):
         ''' Add a reference to a codename. '''
 
@@ -300,7 +371,7 @@ class CodenameView(FlaskView):
             )
         )
 
-    @requires_admin
+    @admin_required
     def put(self, slug):
         ''' Update a codename's summary or description. '''
 
@@ -316,7 +387,7 @@ class CodenameView(FlaskView):
         return jsonify(message='Codename "%s" updated.' % codename.name)
 
     @route('/<slug>/references/<int:reference_id>', methods=('PUT',))
-    @requires_admin
+    @admin_required
     def put_reference(self, slug, reference_id):
         ''' Update a reference. '''
 
