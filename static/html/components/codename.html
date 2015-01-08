@@ -6,7 +6,8 @@
      ng-if='codename.images[currentImageIndex].contributor != null'>
     Contributed by
     <strong>{{codename.images[currentImageIndex].contributor}}</strong>.
-    {{codename.images[currentImageIndex].votes}} awesomes.
+    {{codename.images[currentImageIndex].votes}}
+    awesome<span ng-show="codename.images[currentImageIndex].votes != 1">s</span>.
   </p>
 
   <p class='attribution'
@@ -38,7 +39,7 @@
   <button class='btn btn-xs pull-left'
           ng-click='vote()'
           ng-class='codename.images[currentImageIndex].voted ? "btn-success" : "btn-default"'
-          ng-disabled="disableCarouselButtons">
+          ng-disabled="disableCarouselButtons || codename.images[currentImageIndex].contributor == null">
     <i class='fa fa-thumbs-up'></i>
     Awesome
   </button>

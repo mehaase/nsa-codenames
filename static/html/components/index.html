@@ -1,14 +1,15 @@
 <p id="index">
   <span ng-repeat="letter in letters">
     <a ng-click="scroll(letter)">{{letter}}</a>&nbsp;
-    <span ng-if="!$last">|&nbsp;</span>
+    <span ng-if="$index!=12 && !$last">|&nbsp;</span>
+    <br ng-if="$index==12">
   </span>
 </p>
 <div ng-repeat="letter in letters">
   <h2 id="{{letter}}">{{letter}}</h2>
   <ul>
     <li ng-repeat="codename in codenamesByInitial[letter]">
-      <a href="#/cn/{{codename.slug}}">{{codename.name}}</a>
+      <a href="/{{codename.slug}}">{{codename.name}}</a>
     </li>
   </ul>
 </div>

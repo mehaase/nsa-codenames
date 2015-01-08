@@ -193,7 +193,7 @@ class CodenameView(FlaskView):
 
         return send_from_directory(data_dir, image.thumb_path)
 
-    @route('/index')
+    @route('/')
     def index(self):
         ''' List codenames in alphabetical order. '''
 
@@ -220,7 +220,7 @@ class CodenameView(FlaskView):
 
         return jsonify(codenames=codenames_json)
 
-    @route('/index', methods=('POST',))
+    @route('/', methods=('POST',))
     @admin_required
     def post(self):
         ''' Create a new codename. '''
@@ -236,8 +236,8 @@ class CodenameView(FlaskView):
         for rule in flask_app.url_map.iter_rules():
             root = str(rule).split('/')[1]
             if root == codename.slug:
-                message = 'Codename may not override static route: "%s".'
-                raise Conflict(message % rule)
+                message = 'Codename may not override static route: "/%s".'
+                raise Conflict(message % root)
 
         try:
             g.db.add(codename)

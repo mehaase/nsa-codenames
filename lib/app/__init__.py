@@ -130,22 +130,22 @@ def init_flask(flask_app, config):
 def init_views(flask_app, config):
     """ Initialize views. """
 
-    import app.views.angular
-
     from app.views.authenticate import TwitterAuthenticationView
     TwitterAuthenticationView.register(
         flask_app,
-        route_base='/authenticate/twitter'
+        route_base='/api/authenticate/twitter'
     )
 
     from app.views.codename import CodenameView
-    CodenameView.register(flask_app, route_base='/')
+    CodenameView.register(flask_app, route_base='/api/codename')
 
     from app.views.content import ContentView
-    ContentView.register(flask_app, route_base='/content')
+    ContentView.register(flask_app, route_base='/api/content')
 
     from app.views.user import UserView
-    UserView.register(flask_app, route_base='/user')
+    UserView.register(flask_app, route_base='/api/user')
+
+    import app.views.angular
 
 def init_webassets(flask_app, config):
     """ Initialize Flask-Assets extension. """

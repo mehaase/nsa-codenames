@@ -22,15 +22,6 @@ class MyRouteInitializer implements Function {
                 path: '/add-codename',
                 view: '/static/html/views/add-codename.html'
             ),
-            'codename': ngRoute(
-                path: '/cn/:slug',
-                view: '/static/html/views/codename.html'
-            ),
-            'home': ngRoute(
-                defaultRoute: true,
-                path: '/',
-                view: '/static/html/views/home.html'
-            ),
             'index': ngRoute(
                 path: '/index',
                 view: '/static/html/views/index.html'
@@ -43,6 +34,16 @@ class MyRouteInitializer implements Function {
             'search': ngRoute(
                 path: '/search',
                 view: '/static/html/views/search.html'
+            ),
+            'codename': ngRoute(
+                defaultRoute: true,
+                path: '/:slug',
+                view: '/static/html/views/codename.html',
+                preEnter: (e) => e.parameters['slug'] == null && router.go('home', {})
+            ),
+            'home': ngRoute(
+                path: '/home',
+                view: '/static/html/views/home.html'
             ),
         });
     }
@@ -103,8 +104,6 @@ class NsaCodenamesAppModule extends Module {
         bind(LoginComponent);
         bind(MarkdownComponent);
         bind(NavComponent);
-        bind(NgRoutingUsePushState,
-             toValue: new NgRoutingUsePushState.value(false));
         bind(NodeValidator, toValue: nodeValidator);
         bind(RouteInitializerFn, toImplementation: MyRouteInitializer);
         bind(SearchComponent);
@@ -126,8 +125,8 @@ class AboutComponent {
     AboutComponent(this.auth) {
         this.editable = this.auth.isAdmin();
 
-        HttpRequest.getString('/content/about').then((response) {
-            Map json = JSON.decode(response);
+        HttpRequest.request('/api/content/about', requestHeaders:{'Accept': 'application/json'}).then((request) {
+            Map json = JSON.decode(request.response);
             this.markdown = json['markdown'];
             // Dart uses milliseconds instead of seconds:
             int timestamp = json['updated'] * 1000;
@@ -135,13 +134,13 @@ class AboutComponent {
         });
     }
 
-    void save() {
+    Future save() {
         return HttpRequest.request(
-            '/content/about',
+            '/api/content/about',
             method: 'PUT',
-            requestHeaders: {'Auth': auth.token, 'Content-Type': 'application/json'},
+            requestHeaders: {'Auth': auth.token, 'Content-Type': 'application/json', 'Accept': 'application/json'},
             sendData: JSON.encode({'markdown': this.markdown})
-        ).then((response) {
+        ).then((request) {
             this.updated = new DateTime.now();
         });
     }
@@ -166,9 +165,9 @@ class AddCodenameComponent {
         this.showSpinner = true;
 
         HttpRequest.request(
-            '/index',
+            '/api/codename/',
             method: 'POST',
-            requestHeaders: {'Auth': auth.token, 'Content-Type': 'application/json'},
+            requestHeaders: {'Auth': auth.token, 'Content-Type': 'application/json', 'Accept': 'application/json'},
             sendData: JSON.encode({'name': this.name})
         ).then((request) {
             var response = JSON.decode(request.response);
@@ -224,8 +223,8 @@ class AuthenticationController {
         window.localStorage['token'] = token;
 
         HttpRequest req = HttpRequest.request(
-            '/user/whoami',
-            requestHeaders: {'Auth': this.token}
+            '/api/user/whoami',
+            requestHeaders: {'Auth': this.token, 'Accept': 'application/json'}
         );
 
         req.then(this.continueLogin)
@@ -326,12 +325,12 @@ class CodenameComponent {
 
     CodenameComponent(this.auth, this.rp, this.router) {
         this.editable = this.auth.isAdmin();
-        this.codenameUrl = '/' + this.rp.parameters['slug'];
+        this.codenameUrl = '/api/codename/' + this.rp.parameters['slug'];
 
         HttpRequest.request(
             this.codenameUrl,
             method: 'GET',
-            requestHeaders: {'Auth': this.auth.token != null ? this.auth.token :  ''}
+            requestHeaders: {'Auth': this.auth.token != null ? this.auth.token :  '', 'Accept': 'application/json'}
         ).then((request) {
             Map json = JSON.decode(request.response);
             this.codename = new Codename(json);
@@ -349,7 +348,7 @@ class CodenameComponent {
             HttpRequest.request(
                 this.codenameUrl,
                 method: 'DELETE',
-                requestHeaders: {'Auth': this.auth.token}
+                requestHeaders: {'Auth': this.auth.token, 'Accept': 'application/json'}
             ).then((request) {
                 this.router.go('index', {});
             }).whenComplete(() {
@@ -364,22 +363,22 @@ class CodenameComponent {
         return HttpRequest.request(
             ref.url,
             method: 'DELETE',
-            requestHeaders: {'Auth': this.auth.token}
-        ).then((response) {
+            requestHeaders: {'Auth': this.auth.token, 'Accept': 'application/json'}
+        ).then((request) {
             codename.references.removeAt(index);
         });
     }
 
-    void saveCodename() {
+    Future saveCodename() {
         Map codenameJson = {
             'description': codename.description,
             'summary': codename.summary
         };
 
-        HttpRequest.request(
+        return HttpRequest.request(
             this.codenameUrl,
             method: 'PUT',
-            requestHeaders: {'Auth': auth.token, 'Content-Type': 'application/json'},
+            requestHeaders: {'Auth': auth.token, 'Content-Type': 'application/json', 'Accept': 'application/json'},
             sendData: JSON.encode(codenameJson)
         );
     }
@@ -393,7 +392,7 @@ class CodenameComponent {
         return HttpRequest.request(
             this.codenameUrl + '/references',
             method: 'POST',
-            requestHeaders: {'Auth': this.auth.token, 'Content-Type': 'application/json'},
+            requestHeaders: {'Auth': this.auth.token, 'Content-Type': 'application/json', 'Accept': 'application/json'},
             sendData: JSON.encode(referenceJson)
         ).then((request) {
             Map json = JSON.decode(request.response);
@@ -424,7 +423,7 @@ class CodenameComponent {
         return HttpRequest.request(
             currentImage.url + '/vote',
             method: method,
-            requestHeaders: {'Auth': auth.token}
+            requestHeaders: {'Auth': auth.token, 'Accept': 'application/json'}
         ).then((request) {
             Map json = JSON.decode(request.response);
             currentImage.voted = json['voted'];
@@ -453,7 +452,7 @@ class CodenameComponent {
         }
 
         Element progress = querySelector('div.progress-bar');
-        String url = '/' + this.codename.slug + '/images';
+        String url = '/api/codename/' + this.codename.slug + '/images';
         Map headers = {'Auth': auth.token, 'Content-Type': 'image/png'};
 
         this.status = '';
@@ -568,17 +567,17 @@ class HomeComponent {
     HomeComponent(this.auth) {
         this.editable = this.auth.isAdmin();
 
-        HttpRequest.getString('/content/home').then((response) {
-            Map json = JSON.decode(response);
+        HttpRequest.request('/api/content/home', requestHeaders:{'Accept': 'application/json'}).then((request) {
+            Map json = JSON.decode(request.response);
             this.markdown = json['markdown'];
         });
     }
 
-    void save() {
+    Future save() {
         return HttpRequest.request(
-            '/content/home',
+            '/api/content/home',
             method: 'PUT',
-            requestHeaders: {'Auth': auth.token, 'Content-Type': 'application/json'},
+            requestHeaders: {'Auth': auth.token, 'Content-Type': 'application/json', 'Accept': 'application/json'},
             sendData: JSON.encode({'markdown': this.markdown})
         );
     }
@@ -595,8 +594,6 @@ class Image {
         this.url = json['url'];
         this.voted = json['voted'];
         this.votes = json['votes'];
-
-        print(json);
     }
 }
 
@@ -621,8 +618,8 @@ class IndexComponent {
             value: (item) => new List<String>()
         );
 
-        HttpRequest.getString('/index').then((response) {
-            Map json = JSON.decode(response);
+        HttpRequest.request('/api/codename/', requestHeaders:{'Accept': 'application/json'}).then((request) {
+            Map json = JSON.decode(request.response);
 
             for (Map codenameJson in json['codenames']) {
                 String initial = codenameJson['name'].substring(0, 1)
@@ -650,7 +647,7 @@ class LoginComponent {
     AuthenticationController auth;
 
     String redirectUrl, resourceOwnerKey, resourceOwnerSecret, username='';
-    String apiUrl = '/authenticate/twitter/';
+    String apiUrl = '/api/authenticate/twitter/';
 
     bool disableButtons = false;
     bool showPopupWarning = false;
@@ -671,7 +668,7 @@ class LoginComponent {
         }
 
         this.disableButtons = true;
-        HttpRequest.getString(this.apiUrl).then(this.continueTwitter);
+        HttpRequest.request(this.apiUrl, requestHeaders:{'Accept': 'application/json'}).then(this.continueTwitter);
         this.showSpinner = true;
     }
 
@@ -722,6 +719,7 @@ class LoginComponent {
         };
 
         Map<String,String> headers = {
+            'Accept': 'application/json',
             'Content-Type': 'application/json'
         };
 
@@ -749,9 +747,9 @@ class LoginComponent {
         this.showSpinner = true;
 
         HttpRequest.request(
-            '/user/whoami',
+            '/api/user/whoami',
             method: 'POST',
-            requestHeaders: {'Auth': this.auth.token, 'Content-Type': 'application/json'},
+            requestHeaders: {'Auth': this.auth.token, 'Content-Type': 'application/json', 'Accept': 'application/json'},
             sendData: JSON.encode({'username': username})
         ).then((request) {
             this.auth.logIn(this.auth.token, redirect: true);
@@ -858,15 +856,15 @@ class SearchComponent {
 
     void search() {
         if (query.trim() != '') {
-            String url = '/search?q=' + this.query;
-            HttpRequest.getString(url).then(this.onDataLoaded);
+            String url = '/api/codename/search?q=' + this.query;
+            HttpRequest.request(url, requestHeaders:{'Accept': 'application/json'}).then(this.onDataLoaded);
             this.showSpinner = true;
         }
     }
 
-    void onDataLoaded(String response) {
+    void onDataLoaded(String request) {
         this.showSpinner = false;
-        Map searchResults = JSON.decode(response);
+        Map searchResults = JSON.decode(request.response);
         results.clear();
 
         if (searchResults['codenames'].length == 0) {
