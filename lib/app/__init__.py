@@ -153,23 +153,23 @@ def init_webassets(flask_app, config):
     assets = Environment(flask_app)
     assets.debug = flask_app.debug
 
-    less = Bundle(
+    assets.register("less",  Bundle(
         "less/bootstrap/bootstrap.less",
         "less/font-awesome/font-awesome.less",
         filters="less, cssmin",
         output="combined/bootstrap.css",
         depends="less/*.less"
-    )
+    ))
 
-    assets.register("less_all", less)
+    assets.register('dart', Bundle(
+        'dart/main.dart'
+    ))
 
-    js = Bundle(
+    assets.register("javascript", Bundle(
         'js/markdown.js',
         'dart/packages/web_components/platform.js',
         'dart/packages/web_components/dart_support.js',
+        'dart/packages/browser/dart.js',
         filters='jsmin',
         output='combined/combined.js'
-    )
-
-    assets.register("js_all", js)
-
+    ))
