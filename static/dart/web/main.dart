@@ -7,6 +7,7 @@ import 'package:angular/application_factory.dart';
 import 'package:bootjack/bootjack.dart';
 import 'package:dquery/dquery.dart';
 
+@Injectable()
 class MyRouteInitializer implements Function {
     AuthenticationController auth;
 
@@ -22,7 +23,11 @@ class MyRouteInitializer implements Function {
                 defaultRoute: true,
                 path: '/:slug',
                 view: '/static/html/views/codename.html',
-                preEnter: (e) => e.parameters['slug'] == null && router.go('home', {})
+                preEnter: (e) {
+                    if (e.parameters['slug'] == null) {
+                        router.go('home', {});
+                    }
+                }
             ),
             'add-codename': ngRoute(
                 path: '/add-codename',
@@ -119,7 +124,7 @@ class NsaCodenamesAppModule extends Module {
 
 @Component(
     selector: 'about',
-    templateUrl: '/static/html/components/about.html',
+    templateUrl: 'packages/about.html',
     useShadowDom: false
 )
 class AboutComponent {
@@ -188,6 +193,7 @@ class AddCodenameComponent {
     }
 }
 
+@Injectable()
 class AuthenticationController {
     User currentUser;
     String token;
@@ -247,13 +253,11 @@ class AuthenticationController {
         this.token = token;
         window.localStorage['token'] = token;
 
-        HttpRequest req = HttpRequest.request(
+        HttpRequest.request(
             '/api/user/whoami',
             requestHeaders: {'Auth': this.token, 'Accept': 'application/json'}
-        );
-
-        req.then(this.continueLogin)
-           .catchError((e) => window.localStorage.remove('token'));
+        ).then(this.continueLogin)
+         .catchError((e) => window.localStorage.remove('token'));
     }
 
     void continueLogin(HttpRequest request) {
@@ -618,8 +622,8 @@ class HomeComponent {
 
 class Image {
     String contributor, thumbUrl, url;
-    Integer votes;
-    Boolean approved, voted;
+    int votes;
+    bool approved, voted;
 
     Image(Map json) {
         this.contributor = json['contributor']['username'];
@@ -947,7 +951,7 @@ class SearchComponent {
     bool showSpinner;
 
     SearchComponent() {
-        results = new List<Codename>();
+        results = new List<CodenameResult>();
     }
 
     void handleKeypress(KeyboardEvent ke) {

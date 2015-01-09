@@ -69,9 +69,11 @@ def init_errors(flask_app, config):
 
         if mimetype.startswith('application/json'):
             response = jsonify(message=error.description)
-        else:
+        elif hasattr(error, 'description'):
             response = make_response(error.description)
             response.headers['Content-type'] = 'text/plain'
+        else:
+            raise
 
         response.status_code = error.code
 
@@ -153,6 +155,9 @@ def init_webassets(flask_app, config):
     assets = Environment(flask_app)
     assets.debug = flask_app.debug
 
+    # dart_root = 'dart' if flask_app.debug else 'dart/build'
+    dart_root = 'dart/build'
+
     assets.register("less",  Bundle(
         "less/bootstrap/bootstrap.less",
         "less/font-awesome/font-awesome.less",
@@ -162,14 +167,14 @@ def init_webassets(flask_app, config):
     ))
 
     assets.register('dart', Bundle(
-        'dart/main.dart'
+        dart_root + '/web/main.dart'
     ))
 
     assets.register("javascript", Bundle(
         'js/markdown.js',
-        'dart/packages/web_components/platform.js',
-        'dart/packages/web_components/dart_support.js',
-        'dart/packages/browser/dart.js',
-        filters='jsmin',
+        dart_root + '/web/packages/web_components/platform.js',
+        dart_root + '/web/packages/web_components/dart_support.js',
+        dart_root + '/web/packages/browser/dart.js',
+        # filters='jsmin',
         output='combined/combined.js'
     ))
