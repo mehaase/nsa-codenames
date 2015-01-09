@@ -26,8 +26,8 @@ class MyRouteInitializer implements Function {
             ),
             'add-codename': ngRoute(
                 path: '/add-codename',
-                view: '/static/html/views/add-codename.html'
-                // preEnter: auth.requireLogin
+                view: '/static/html/views/add-codename.html',
+                preEnter: auth.requireLogin
             ),
             'home': ngRoute(
                 path: '/home',
@@ -39,13 +39,13 @@ class MyRouteInitializer implements Function {
             ),
             'login': ngRoute(
                 path: '/login',
-                view: '/static/html/views/login.html'
-                // preEnter: auth.requireNoLogin
+                view: '/static/html/views/login.html',
+                preEnter: auth.requireNoLogin
             ),
             'moderate': ngRoute(
                 path: '/moderate',
-                view: '/static/html/views/moderate.html'
-                // preEnter: auth.requireLogin
+                view: '/static/html/views/moderate.html',
+                preEnter: auth.requireLogin
             ),
             'search': ngRoute(
                 path: '/search',
@@ -195,25 +195,43 @@ class AuthenticationController {
     Router _router;
     bool _redirect;
 
+    Completer<bool> _loggedInCompleter;
+    Completer<bool> _notLoggedInCompleter;
+
     AuthenticationController(Router router) {
         this._router = router;
 
+        this._loggedInCompleter = new Completer<bool>();
+        this._notLoggedInCompleter = new Completer<bool>();
+        this._loggedInCompleter.future.then((isLoggedIn) {
+            this._notLoggedInCompleter.complete(!isLoggedIn);
+        });
+
         if (window.localStorage.containsKey('token')) {
             this.logIn(window.localStorage['token'], redirect: false);
+        } else {
+            this._loggedInCompleter.complete(false);
         }
     }
 
     void requireLogin(RoutePreEnterEvent e) {
-        if (!this.isLoggedIn()) {
-            e.allowEnter(new Future<bool>.value(false));
-            this._router.go('login', {});
-        }
+        e.allowEnter(this._loggedInCompleter.future);
+
+        this._loggedInCompleter.future.then((result) {
+            if (!result) {
+                this._router.go('login', {});
+            }
+        });
     }
 
     void requireNoLogin(RoutePreEnterEvent e) {
-        if (this.isLoggedIn()) {
-            e.allowEnter(new Future<bool>.value(false));
-        }
+        e.allowEnter(this._notLoggedInCompleter.future);
+
+        this._notLoggedInCompleter.future.then((result) {
+            if (!result) {
+                this._router.go('home', {});
+            }
+        });
     }
 
     bool isLoggedIn() {
@@ -247,8 +265,16 @@ class AuthenticationController {
             this.currentUser.username = response['username'];
             this.currentUser.imageUrl = response['image_url'];
             this.currentUser.isAdmin = response['is_admin'];
+
+            if (!this._loggedInCompleter.isCompleted) {
+                this._loggedInCompleter.complete(true);
+            }
         } else {
             window.localStorage.remove('token');
+
+            if (!this._loggedInCompleter.isCompleted) {
+                this._loggedInCompleter.complete(false);
+            }
         }
 
         if (this._redirect) {
