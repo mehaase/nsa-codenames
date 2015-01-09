@@ -26,6 +26,9 @@
         <li ng-if='auth.isAdmin()'>
           <a href='/add-codename'>Add codename…</a>
         </li>
+        <li ng-if='auth.isAdmin()'>
+          <a href='/moderate'>Moderate artwork…</a>
+        </li>
         <li ng-if='auth.isAdmin()' class="divider"></li>
         <li><a ng-click='auth.logOut()'>Log Out</a></li>
       </ul>

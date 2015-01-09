@@ -3,11 +3,16 @@
   <img ng-src='{{codename.images[currentImageIndex].url}}'>
 
   <p class='attribution'
-     ng-if='codename.images[currentImageIndex].contributor != null'>
+     ng-if='codename.images[currentImageIndex].contributor != null && codename.images[currentImageIndex].approved'>
     Contributed by
     <strong>{{codename.images[currentImageIndex].contributor}}</strong>.
     {{codename.images[currentImageIndex].votes}}
     awesome<span ng-show="codename.images[currentImageIndex].votes != 1">s</span>.
+  </p>
+
+  <p class='attribution'
+     ng-if='codename.images[currentImageIndex].contributor != null && !codename.images[currentImageIndex].approved'>
+    This artwork is visible only to you until a moderator approves it.
   </p>
 
   <p class='attribution'
@@ -39,7 +44,8 @@
   <button class='btn btn-xs pull-left'
           ng-click='vote()'
           ng-class='codename.images[currentImageIndex].voted ? "btn-success" : "btn-default"'
-          ng-disabled="disableCarouselButtons || codename.images[currentImageIndex].contributor == null">
+          ng-if='codename.images[currentImageIndex].contributor != null'
+          ng-disabled="disableCarouselButtons">
     <i class='fa fa-thumbs-up'></i>
     Awesome
   </button>

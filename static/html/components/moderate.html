@@ -1,0 +1,26 @@
+<h1>Moderation Queue</h1>
+
+<div class='moderate-item' ng-repeat='moderateItem in moderateItems'>
+  <img ng-src='{{moderateItem.imageUrl}}'>
+
+  <button class='btn btn-success pull-left' ng-click='approve($index)'>
+    <i class='fa fa-thumbs-up'></i>
+    Approve
+  </button>
+
+  <button class='btn btn-primary pull-right' ng-click='delete($index)'>
+    <i class='fa fa-thumbs-down'></i>
+    Delete
+  </button>
+
+  <p>
+    <strong>Codename:</strong>
+    <a href="/{{moderateItem.codenameSlug}}">{{moderateItem.codename}}</a>
+    <br>
+    <strong>Contributor:</strong> {{moderateItem.contributor}}
+  </p>
+</div>
+
+<p ng-show='moderateItems.length == 0'>
+  The moderation queue is empty! Good work :)
+</p>

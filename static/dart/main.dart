@@ -18,9 +18,20 @@ class MyRouteInitializer implements Function {
                 path: '/about',
                 view: '/static/html/views/about.html'
             ),
+            'codename': ngRoute(
+                defaultRoute: true,
+                path: '/:slug',
+                view: '/static/html/views/codename.html',
+                preEnter: (e) => e.parameters['slug'] == null && router.go('home', {})
+            ),
             'add-codename': ngRoute(
                 path: '/add-codename',
                 view: '/static/html/views/add-codename.html'
+                // preEnter: auth.requireLogin
+            ),
+            'home': ngRoute(
+                path: '/home',
+                view: '/static/html/views/home.html'
             ),
             'index': ngRoute(
                 path: '/index',
@@ -28,22 +39,17 @@ class MyRouteInitializer implements Function {
             ),
             'login': ngRoute(
                 path: '/login',
-                view: '/static/html/views/login.html',
-                preEnter: auth.requireNoLogin
+                view: '/static/html/views/login.html'
+                // preEnter: auth.requireNoLogin
+            ),
+            'moderate': ngRoute(
+                path: '/moderate',
+                view: '/static/html/views/moderate.html'
+                // preEnter: auth.requireLogin
             ),
             'search': ngRoute(
                 path: '/search',
                 view: '/static/html/views/search.html'
-            ),
-            'codename': ngRoute(
-                defaultRoute: true,
-                path: '/:slug',
-                view: '/static/html/views/codename.html',
-                preEnter: (e) => e.parameters['slug'] == null && router.go('home', {})
-            ),
-            'home': ngRoute(
-                path: '/home',
-                view: '/static/html/views/home.html'
             ),
         });
     }
@@ -103,6 +109,7 @@ class NsaCodenamesAppModule extends Module {
         bind(HomeComponent);
         bind(LoginComponent);
         bind(MarkdownComponent);
+        bind(ModerateComponent);
         bind(NavComponent);
         bind(NodeValidator, toValue: nodeValidator);
         bind(RouteInitializerFn, toImplementation: MyRouteInitializer);
@@ -411,7 +418,7 @@ class CodenameComponent {
 
     void vote() {
         if (this.auth.token == null) {
-            window.alert('Please log in to upload artwork.');
+            window.alert('Please log in to vote on artwork.');
             return;
         }
 
@@ -586,12 +593,13 @@ class HomeComponent {
 class Image {
     String contributor, thumbUrl, url;
     Integer votes;
-    Boolean voted;
+    Boolean approved, voted;
 
     Image(Map json) {
         this.contributor = json['contributor']['username'];
         this.thumbUrl = json['thumbUrl'];
         this.url = json['url'];
+        this.approved = json['approved'];
         this.voted = json['voted'];
         this.votes = json['votes'];
     }
@@ -672,8 +680,8 @@ class LoginComponent {
         this.showSpinner = true;
     }
 
-    void continueTwitter(String jsonResponse) {
-        Map response = JSON.decode(jsonResponse);
+    void continueTwitter(String request) {
+        Map response = JSON.decode(request.response);
 
         this.resourceOwnerKey = response['resource_owner_key'];
         this.resourceOwnerSecret = response['resource_owner_secret'];
@@ -813,6 +821,80 @@ class MarkdownComponent implements ScopeAware {
             this.showSpinner = false;
             this.editing = false;
         });
+    }
+}
+
+@Component(
+    selector: 'moderate',
+    templateUrl: '/static/html/components/moderate.html',
+    useShadowDom: false
+)
+class ModerateComponent {
+    AuthenticationController auth;
+    List<ModerateItem> moderateItems;
+
+    ModerateComponent(this.auth) {
+        this.moderateItems = new List<ModerateItem>();
+
+        HttpRequest.request('/api/codename/approval', requestHeaders:{'Accept': 'application/json', 'Auth': auth.token}).then((request) {
+            Map json = JSON.decode(request.response);
+
+            for (Map moderateJson in json['approvals']) {
+                this.moderateItems.add(new ModerateItem(moderateJson));
+            }
+        });
+    }
+
+    void approve(int index) {
+
+        ModerateItem moderateItem = this.moderateItems[index];
+        String confirmation = "Are you sure you want to approve this artwork"
+                            + " for '"
+                            + moderateItem.codename
+                            + "'?";
+
+        if (window.confirm(confirmation)) {
+            HttpRequest.request(
+                moderateItem.approveUrl,
+                method: 'POST',
+                requestHeaders: {'Auth': auth.token, 'Content-Type': 'application/json', 'Accept': 'application/json'}
+            ).then((request) {
+                this.moderateItems.removeAt(index);
+            });
+        }
+    }
+
+    void delete(int index) {
+        ModerateItem moderateItem = this.moderateItems[index];
+        String confirmation = "Are you sure you want to delete this artwork"
+                            + " for '"
+                            + moderateItem.codename
+                            + "'?";
+
+        if (window.confirm(confirmation)) {
+            HttpRequest.request(
+                moderateItem.deleteUrl,
+                method: 'DELETE',
+                requestHeaders: {'Auth': this.auth.token, 'Accept': 'application/json'}
+            ).then((request) {
+                this.moderateItems.removeAt(index);
+            });
+        }
+    }
+}
+
+class ModerateItem {
+    String approveUrl, codename, codenameSlug, codenameUrl,
+           contributor, deleteUrl, imageUrl;
+
+    ModerateItem(Map json) {
+        this.approveUrl = json['approveUrl'];
+        this.codename = json['codename']['name'];
+        this.codenameSlug = json['codename']['slug'];
+        this.codenameUrl = json['codename']['url'];
+        this.contributor = json['contributor']['username'];
+        this.deleteUrl = json['deleteUrl'];
+        this.imageUrl = json['imageUrl'];
     }
 }
 

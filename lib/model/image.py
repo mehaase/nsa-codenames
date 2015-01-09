@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, Table
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import relationship
 
 from model import Base
@@ -31,6 +31,7 @@ class Image(Base):
     path = Column(String(255))
     thumb_path = Column(String(255))
     votes = Column(Integer)
+    approved = Column(Boolean)
 
     voters = relationship(
         'User',
@@ -60,3 +61,4 @@ class Image(Base):
         self.thumb_path = thumb_path
         self.contributor = contributor
         self.votes = 0
+        self.approved = False

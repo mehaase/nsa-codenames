@@ -22,6 +22,67 @@ DEFAULT_THUMB_URL = '/static/img/default-codename-thumb.png'
 class CodenameView(FlaskView):
     ''' API for Codename and related models. '''
 
+    @route('/approval')
+    @admin_required
+    def approval(self):
+        ''' List images that are pending approval. '''
+
+        needs_approval = list()
+        unapproved_images = g.db.query(Image) \
+                                .join(Image.codename) \
+                                .filter(Image.approved==False)
+
+        for image in unapproved_images:
+            approve_url = url_for(
+                'CodenameView:approve_image',
+                slug=image.codename.slug,
+                image_id=image.id
+            )
+
+            codename_url = url_for(
+                'CodenameView:get',
+                slug=image.codename.slug
+            )
+
+            delete_url = url_for(
+                'CodenameView:delete_image',
+                slug=image.codename.slug,
+                image_id=image.id
+            )
+
+            image_url = url_for(
+                'CodenameView:get_image',
+                slug=image.codename.slug,
+                image_id=image.id
+            )
+
+            needs_approval.append({
+                'approveUrl': approve_url,
+                'codename': {
+                    'name': image.codename.name,
+                    'slug': image.codename.slug,
+                    'url':  codename_url,
+                },
+                'contributor': {'username': image.contributor.username},
+                'deleteUrl': delete_url,
+                'imageUrl': image_url,
+            })
+
+        return jsonify(approvals=needs_approval)
+
+    @route('/<slug>/approve/<int:image_id>', methods=('POST',))
+    @admin_required
+    def approve_image(self, slug, image_id):
+        ''' Approve an image. '''
+
+        codename = self._get_codename_by_slug(slug)
+        image = self._get_image_for_codename(image_id, codename)
+
+        image.approved = True
+        g.db.commit()
+
+        return jsonify(message='Image approved.')
+
     @admin_required
     def delete(self, slug):
         ''' Delete a codename. '''
@@ -99,33 +160,38 @@ class CodenameView(FlaskView):
             'references': list(),
         }
 
-        if len(codename.images) == 0:
+        for image in codename.images:
+            voted = g.user in image.voters if g.user is not None else False
+
+            if not image.approved and g.user is not image.contributor:
+                continue
+
+            codename_json['images'].append({
+                'url': url_for(
+                    'CodenameView:get_image',
+                    slug=codename.slug,
+                    image_id=image.id
+                ),
+                'thumbUrl': url_for(
+                    'CodenameView:get_thumb',
+                    slug=codename.slug,
+                    image_id=image.id
+                ),
+                'contributor': {'username': image.contributor.username},
+                'voted': voted,
+                'votes': image.votes,
+                'approved': image.approved,
+            })
+
+        if len(codename_json['images']) == 0:
             codename_json['images'].append({
                 'contributor': {'username': None},
                 'url': DEFAULT_IMAGE_URL,
                 'thumbUrl': DEFAULT_THUMB_URL,
                 'voted': False,
                 'votes': 0,
+                'approved': True,
             })
-        else:
-            for image in codename.images:
-                voted = g.user in image.voters if g.user is not None else False
-
-                codename_json['images'].append({
-                    'url': url_for(
-                        'CodenameView:get_image',
-                        slug=codename.slug,
-                        image_id=image.id
-                    ),
-                    'thumbUrl': url_for(
-                        'CodenameView:get_thumb',
-                        slug=codename.slug,
-                        image_id=image.id
-                    ),
-                    'contributor': {'username': image.contributor.username},
-                    'voted': voted,
-                    'votes': image.votes,
-                })
 
         for reference in codename.references:
             codename_json['references'].append({
@@ -149,6 +215,24 @@ class CodenameView(FlaskView):
         data_dir = app.config.get_path('data')
 
         return send_from_directory(data_dir, image.path)
+
+    @route('/<slug>/images/<int:image_id>/approval')
+    @login_optional
+    def get_image_approval(self, slug, image_id):
+        ''' Get an image's approval status. '''
+
+        codename = self._get_codename_by_slug(slug)
+        image = self._get_image_for_codename(image_id, codename)
+
+        if g.user is not None:
+            vote = g.db.query(Image) \
+                       .join(Image.voters) \
+                       .filter(User.id==g.user.id, Image.id==image_id) \
+                       .count()
+        else:
+            vote = 0
+
+        return jsonify(approved=image.approved)
 
     @route('/<slug>/images/<int:image_id>/vote')
     @login_optional
@@ -319,9 +403,10 @@ class CodenameView(FlaskView):
         return jsonify(
             url=url,
             thumbUrl=thumb_url,
-            contributor={'username': g.user.username},
+            contributor={'username': image_obj.contributor.username},
             replace=(len(codename.images) == 1),
-            votes=0
+            votes=image_obj.votes,
+            approved=image_obj.approved
         )
 
     @route('/<slug>/images/<int:image_id>/vote', methods=('POST',))
