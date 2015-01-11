@@ -41,7 +41,7 @@ def bootstrap(debug=False, debug_db=False):
     flask_app = MyFlask(
         __name__,
         static_folder=app.config.get_path("static"),
-        template_folder=app.config.get_path("static/html")
+        template_folder=app.config.get_path("html")
     )
     flask_app.debug = debug
     flask_app.debug_db = debug_db
@@ -155,8 +155,7 @@ def init_webassets(flask_app, config):
     assets = Environment(flask_app)
     assets.debug = flask_app.debug
 
-    # dart_root = 'dart' if flask_app.debug else 'dart/build'
-    dart_root = 'dart/build'
+    dart_root = 'dart' if flask_app.debug else 'dart/build'
 
     assets.register("less",  Bundle(
         "less/bootstrap/bootstrap.less",
