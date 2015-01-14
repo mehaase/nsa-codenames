@@ -15,11 +15,8 @@ class HomeComponent {
     AuthenticationController auth;
 
     String markdown;
-    bool editable;
 
     HomeComponent(this.auth) {
-        this.editable = this.auth.isAdmin();
-
         HttpRequest.request('/api/content/home', requestHeaders:{'Accept': 'application/json'}).then((request) {
             Map json = JSON.decode(request.response);
             this.markdown = json['markdown'];

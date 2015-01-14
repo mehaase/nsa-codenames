@@ -517,14 +517,18 @@ class CodenameView(FlaskView):
                 'url': url_for('CodenameView:get', slug=codename.slug)
             }
 
-            if len(codename.images) == 0:
+            for image in codename.images:
+                if image.approved:
+                    codename_json['thumbUrl'] = url_for(
+                        'CodenameView:get_thumb',
+                        slug=codename.slug,
+                        image_id=codename.images[0].id
+                    )
+
+                    break
+
+            if 'thumbUrl' not in codename_json:
                 codename_json['thumbUrl'] = DEFAULT_THUMB_URL
-            else:
-                codename_json['thumbUrl'] = url_for(
-                    'CodenameView:get_thumb',
-                    slug=codename.slug,
-                    image_id=codename.images[0].id
-                )
 
             codenames_json.append(codename_json)
 

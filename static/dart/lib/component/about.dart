@@ -14,13 +14,10 @@ import 'package:nsa_codenames/authentication.dart';
 class AboutComponent {
     AuthenticationController auth;
 
-    bool editable;
     String markdown;
     DateTime updated;
 
     AboutComponent(this.auth) {
-        this.editable = this.auth.isAdmin();
-
         HttpRequest.request('/api/content/about', requestHeaders:{'Accept': 'application/json'}).then((request) {
             Map json = JSON.decode(request.response);
             this.markdown = json['markdown'];

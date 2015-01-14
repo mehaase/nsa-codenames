@@ -20,11 +20,7 @@ class AuthenticationController {
     AuthenticationController(Router router) {
         this._router = router;
 
-        this._loggedInCompleter = new Completer<bool>();
-        this._notLoggedInCompleter = new Completer<bool>();
-        this._loggedInCompleter.future.then((isLoggedIn) {
-            this._notLoggedInCompleter.complete(!isLoggedIn);
-        });
+        this._initCompleters();
 
         if (window.localStorage.containsKey('token')) {
             this.logIn(window.localStorage['token'], redirect: false);
@@ -33,11 +29,23 @@ class AuthenticationController {
         }
     }
 
+    void _initCompleters() {
+        this._loggedInCompleter = new Completer<bool>();
+        this._notLoggedInCompleter = new Completer<bool>();
+
+        this._loggedInCompleter.future.then((isLoggedIn) {
+            this._notLoggedInCompleter.complete(!isLoggedIn);
+        });
+    }
+
     void requireLogin(RoutePreEnterEvent e) {
+        print("REQUIRE LOGIN");
         e.allowEnter(this._loggedInCompleter.future);
 
         this._loggedInCompleter.future.then((result) {
+            print("REQUIRE LOGIN COMPLETED");
             if (!result) {
+                print("ROutING TO LOGIN");
                 this._router.go('login', {});
             }
         });
@@ -69,8 +77,15 @@ class AuthenticationController {
         HttpRequest.request(
             '/api/user/whoami',
             requestHeaders: {'Auth': this.token, 'Accept': 'application/json'}
-        ).then(this.continueLogin)
-         .catchError((e) => window.localStorage.remove('token'));
+        ).then((request) {
+            this.continueLogin(request);
+        }).catchError((e) {
+            window.localStorage.remove('token');
+
+            if (!this._loggedInCompleter.isCompleted) {
+                this._loggedInCompleter.complete(false);
+            }
+        });
     }
 
     void continueLogin(HttpRequest request) {
@@ -103,6 +118,9 @@ class AuthenticationController {
         this.currentUser = null;
         this.token = null;
         window.localStorage.remove('token');
+
+        this._initCompleters();
+        this._loggedInCompleter.complete(false);
 
         if (this._router.activePath.first.name == 'login') {
             this._router.go('home', {});
