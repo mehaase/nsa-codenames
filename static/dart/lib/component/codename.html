@@ -72,14 +72,14 @@
 
 <h2>Summary</h2>
 <markdown text='codename.summary'
-          editable='editable'
+          editable='auth.isAdmin()'
           save-handler='saveCodename'
           rows='10'>
 </markdown>
 
 <h2>Description</h2>
 <markdown text='codename.description'
-          editable='editable'
+          editable='auth.isAdmin()'
           save-handler='saveCodename'
           rows='20'>
 </markdown>
@@ -92,13 +92,13 @@
   <li ng-repeat='reference in codename.references'>
     <a href="{{reference.externalUrl}}">{{reference.annotation}}</a>
     <button class='btn btn-primary btn-xs'
-            ng-show='editable'
+            ng-show='auth.isAdmin()'
             ng-click='deleteReference($index)'>
       <i class='fa fa-trash'></i>
       Remove Reference
     </button>
   </li>
-  <li ng-show='editable && showAddReferenceForm'>
+  <li ng-show='auth.isAdmin() && showAddReferenceForm'>
     <input placeholder='URL' ng-model='newReferenceUrl'>
     <input placeholder='Annotation' ng-model='newReferenceAnnotation'>
     <button class='btn btn-link btn-sm' ng-click='addReference()'>
@@ -111,7 +111,7 @@
     </button>
   </li>
 </ul>
-<p ng-show='editable'>
+<p ng-show='auth.isAdmin()'>
   <button class='btn btn-primary btn-sm'
           ng-show='!showAddReferenceForm'
           ng-click='showAddReferenceForm=true'>

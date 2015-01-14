@@ -39,13 +39,10 @@ class AuthenticationController {
     }
 
     void requireLogin(RoutePreEnterEvent e) {
-        print("REQUIRE LOGIN");
         e.allowEnter(this._loggedInCompleter.future);
 
         this._loggedInCompleter.future.then((result) {
-            print("REQUIRE LOGIN COMPLETED");
             if (!result) {
-                print("ROutING TO LOGIN");
                 this._router.go('login', {});
             }
         });
@@ -98,9 +95,11 @@ class AuthenticationController {
             this.currentUser.imageUrl = response['image_url'];
             this.currentUser.isAdmin = response['is_admin'];
 
-            if (!this._loggedInCompleter.isCompleted) {
-                this._loggedInCompleter.complete(true);
+            if (this._loggedInCompleter.isCompleted) {
+                this._initCompleters();
             }
+
+            this._loggedInCompleter.complete(true);
         } else {
             window.localStorage.remove('token');
 

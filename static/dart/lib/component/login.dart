@@ -22,17 +22,22 @@ class LoginComponent {
     bool showUsernamePrompt = false;
     bool showSpinner = false;
 
-    Window popup;
-    Timer popupTimer;
+    Window _popup;
+    Timer _popupTimer;
 
     LoginComponent(AuthenticationController auth) {
         this.auth = auth;
     }
 
     void startTwitter() {
-        if (this.popup != null) {
-            this.popup.close();
-            this.popup = null;
+        if (this._popup != null) {
+            try {
+                // A weird dart2js bug.
+                this._popup.close();
+            } catch (e) {
+                // Do nothing...
+            }
+            this._popup = null;
         }
 
         this.disableButtons = true;
@@ -45,7 +50,7 @@ class LoginComponent {
 
         this.resourceOwnerKey = response['resource_owner_key'];
         this.resourceOwnerSecret = response['resource_owner_secret'];
-        this.popup = window.open(
+        this._popup = window.open(
             response['url'],
             'Log In With Twitter',
             'width=600,height=400'
@@ -53,25 +58,34 @@ class LoginComponent {
 
         // If the popup is closed without completing the workflow, then
         // reset the UI.
-        this.popupTimer = new Timer.periodic(
+        this._popupTimer = new Timer.periodic(
             new Duration(milliseconds: 500),
             (event) {
-                if (this.popup != null && this.popup.closed) {
+                try {
+                    // Work around weird dart2js bug.
+                    if (this._popup.closed) {
+                        throw new Exception("Popup was blocked!");
+                    }
+                } catch (e) {
+                    this.showPopupWarning = true;
                     this.disableButtons = false;
                     this.showSpinner = false;
-                    this.popupTimer.cancel();
+                    this._popupTimer.cancel();
                 }
             }
         );
 
         // Wait for the workflow to complete, then finish authentication.
-        if (this.popup == null) {
+        if (this._popup == null) {
             this.showPopupWarning = true;
+            this.disableButtons = false;
+            this.showSpinner = false;
+            this._popupTimer.cancel();
         } else {
             window.addEventListener('message', (event) {
                 if (event.data.substring(0,4) == 'http') {
-                    this.popup.close();
-                    this.popupTimer.cancel();
+                    this._popup.close();
+                    this._popupTimer.cancel();
                     this.redirectUrl = event.data;
                     finishTwitter();
                 }
