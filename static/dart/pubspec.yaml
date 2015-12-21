@@ -6,16 +6,4 @@ dependencies:
     browser: ">=0.10.0+2 <0.11.0"
     web_components: ">=0.8.0 <0.9.0"
 transformers:
-- angular:
-    html_files:
-        - lib/component/about.html
-        - lib/component/add-codename.html
-        - lib/component/codename.html
-        - lib/component/codename-result.html
-        - lib/component/home.html
-        - lib/component/index.html
-        - lib/component/login.html
-        - lib/component/markdown.html
-        - lib/component/moderate.html
-        - lib/component/nav.html
-        - lib/component/search.html
+- angular

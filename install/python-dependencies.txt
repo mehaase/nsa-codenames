@@ -1,3 +1,4 @@
+boto
 cssmin
 flask
 Flask-Assets
@@ -7,5 +8,5 @@ jsmin
 Pillow
 PyMySQL
 python-slugify
-requests-oauth
+requests-oauthlib
 SQLAlchemy

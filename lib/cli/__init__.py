@@ -1,5 +1,6 @@
 import argparse
 from datetime import datetime
+import logging
 import sys
 
 import app.config
@@ -7,20 +8,36 @@ import app.config
 class BaseCli:
     """ Base class for CLI scripts. """
 
+    def __init__(self):
+        ''' Constructor. '''
+
+        log_string_format = '%(asctime)s [%(name)s] %(levelname)s: %(message)s'
+        log_date_format = '%Y-%m-%d %H:%M:%S'
+        log_formatter = logging.Formatter(log_string_format, log_date_format)
+
+        self._logger = logging.getLogger('cli')
+        self._log_handler = logging.StreamHandler(sys.stderr)
+        self._log_handler.setFormatter(log_formatter)
+        self._logger.addHandler(self._log_handler)
+
     def get_args(self):
         """ Parse command line arguments. """
 
         arg_parser = argparse.ArgumentParser(description=self.__class__.__doc__)
 
         arg_parser.add_argument(
-            '--debug',
-            action='store_true',
-            help='Enable debug mode.'
+            '-v',
+            dest='verbosity',
+            default='info',
+            choices=['debug', 'info', 'warning', 'error', 'critical'],
+            help='Set logging verbosity. Defaults to "info".'
         )
 
         self._get_args(arg_parser)
+        args = arg_parser.parse_args()
+        self._logger.setLevel(getattr(logging, args.verbosity.upper()))
 
-        return arg_parser.parse_args()
+        return args
 
     def error(self):
         ''' Print an error message to stderr and then quit. '''

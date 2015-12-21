@@ -1,9 +1,23 @@
+[aws]
+
+access_key = ##AWS_ACCESS_KEY##
+secret_key = ##AWS_SECRET_KEY##
+backup_bucket = ##BACKUP_BUCKET##
+
 [database]
 
-; Credentials to access MySQL.
+; Regular credentials: these are used by the application for all front-end
+; queries and should have limited privileges.
 
-username = ##MYSQL_USERNAME##
-password = ##MYSQL_PASSWORD##
+username = ##DATABASE_USERNAME##
+password = ##DATABASE_PASSWORD##
+
+; Superuser credentials: these are used for building/dropping the database, and
+; this user will be the owner of all such objects. (You should configure
+; Agnostic migrations to use this same user.)
+
+super_username = ##DATABASE_SUPER_USERNAME##
+super_password = ##DATABASE_SUPER_PASSWORD##
 
 [flask]
 

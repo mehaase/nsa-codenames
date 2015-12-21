@@ -11,7 +11,7 @@ class User(Base):
     __tablename__ = 'user'
 
     id = Column(Integer, primary_key=True)
-    username = Column(String(255), unique=True)
+    email = Column(String(255), unique=True)
     image_url = Column(Text)
     is_admin = Column(Boolean)
     added = Column(DateTime)

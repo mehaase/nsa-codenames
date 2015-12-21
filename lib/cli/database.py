@@ -97,8 +97,14 @@ class DatabaseCli(cli.BaseCli):
 
         arg_parser.add_argument(
             'action',
-            choices=('build',),
+            choices=('build','drop'),
             help='Specify what action to take.'
+        )
+
+        arg_parser.add_argument(
+            '--debug-db',
+            action='store_true',
+            help='Print database queries.'
         )
 
         arg_parser.add_argument(
@@ -110,17 +116,27 @@ class DatabaseCli(cli.BaseCli):
     def _run(self, args, config):
         ''' Main entry point. '''
 
+        if args.debug_db:
+            # Configure database logging.
+            log_level = getattr(logging, args.verbosity.upper())
+
+            db_logger = logging.getLogger('sqlalchemy.engine')
+            db_logger.setLevel(log_level)
+            db_logger.addHandler(self._log_handler)
+
         database_config = dict(config.items('database'))
-        self._db = app.database.get_engine(database_config, args.debug)
+        self._db = app.database.get_engine(database_config, superuser=True)
 
-        self.info('Dropping existing database tables.')
-        Base.metadata.drop_all(self._db)
+        if args.action in ('build', 'drop'):
+            self._logger.info('Dropping database tables.')
+            self._drop_all()
 
-        self.info('Creating database tables.')
-        Base.metadata.create_all(self._db)
+        if args.action == 'build':
+            self.info('Creating database tables.')
+            Base.metadata.create_all(self._db)
 
-        self.info('Creating fixture data.')
-        self._create_fixture_data()
+            self.info('Creating fixture data.')
+            self._create_fixture_data()
 
         if args.sample_data:
             self.info('Creating sample data.')
