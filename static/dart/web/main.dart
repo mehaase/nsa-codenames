@@ -39,7 +39,8 @@ class NsaCodenames extends Module {
         bind(ModerateComponent);
         bind(NavComponent);
         bind(NodeValidator, toValue: nodeValidator);
-        bind(RouteInitializerFn, toImplementation: MyRouteInitializer);
+        bind(RouteInitializerFn,
+             toImplementation: NsaCodenamesRouteInitializer);
         bind(SearchComponent);
     }
 }

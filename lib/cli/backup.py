@@ -67,8 +67,6 @@ class BackupCli(cli.BaseCli):
 
         bucket = Bucket(connection=s3, name=aws_config['backup_bucket'])
 
-        self._logger.info('Dumping database "{}"'.format(db_config['database']))
-
         try:
             with open(mysql_path, 'w+') as mysql_backup:
                 msg = 'Dumping database "{}" to {}'

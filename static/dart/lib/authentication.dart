@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:html';
 
 import 'package:angular/angular.dart';
-
 import 'package:nsa_codenames/model/user.dart';
 
 @Injectable()

@@ -15,4 +15,7 @@ def angular(path):
     route should be added after all other routes.
     """
 
+    if path is not None and path.startswith('api/'):
+        raise NotFound('There is no API endpoint matching "%s".' % path)
+
     return render_template("root.html")

@@ -7,7 +7,7 @@ import 'package:nsa_codenames/model/codename-result.dart';
 
 @Component(
     selector: 'index',
-    templateUrl: '/static/dart/web/packages/nsa_codenames/component/index.html',
+    templateUrl: 'packages/nsa_codenames/component/index.html',
     useShadowDom: false
 )
 class IndexComponent {

@@ -11,7 +11,7 @@ import 'package:nsa_codenames/model/reference.dart';
 
 @Component(
     selector: 'codename',
-    templateUrl: '/static/dart/web/packages/nsa_codenames/component/codename.html',
+    templateUrl: 'packages/nsa_codenames/component/codename.html',
     useShadowDom: false
 )
 class CodenameComponent {

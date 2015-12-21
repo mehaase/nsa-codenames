@@ -42,7 +42,7 @@ def bootstrap(debug=False, debug_db=False):
     flask_app = MyFlask(
         __name__,
         static_folder=app.config.get_path("static"),
-        template_folder=app.config.get_path("html")
+        template_folder=app.config.get_path("lib/app/templates")
     )
     flask_app.debug = debug
     flask_app.debug_db = debug_db
@@ -183,6 +183,8 @@ def init_views(flask_app, config):
     from app.views.user import UserView
     UserView.register(flask_app, route_base='/api/user')
 
+    # Make sure to import the Angular view last so that it will match
+    # all remaining routes.
     import app.views.angular
 
 
@@ -192,25 +194,24 @@ def init_webassets(flask_app, config):
     assets = Environment(flask_app)
     assets.debug = flask_app.debug
 
-    dart_root = 'dart' if flask_app.debug else 'dart/build'
+    dart_root = 'dart/web' if flask_app.debug else 'dart/build/web'
 
     assets.register("less",  Bundle(
         "less/bootstrap/bootstrap.less",
         "less/font-awesome/font-awesome.less",
-        filters="less, cssmin",
+        filters="less",
         output="combined/bootstrap.css",
         depends="less/*.less"
     ))
 
     assets.register('dart', Bundle(
-        dart_root + '/web/main.dart'
+        dart_root + '/main.dart'
     ))
 
     assets.register("javascript", Bundle(
         'js/markdown.js',
-        dart_root + '/web/packages/web_components/platform.js',
-        dart_root + '/web/packages/web_components/dart_support.js',
-        dart_root + '/web/packages/browser/dart.js',
+        dart_root + '/packages/web_components/dart_support.js',
+        dart_root + '/packages/browser/dart.js',
         # filters='jsmin',
         output='combined/combined.js'
     ))

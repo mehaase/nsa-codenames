@@ -8,7 +8,7 @@ import 'package:nsa_codenames/model/moderate-item.dart';
 
 @Component(
     selector: 'moderate',
-    templateUrl: '/static/dart/web/packages/nsa_codenames/component/moderate.html',
+    templateUrl: 'packages/nsa_codenames/component/moderate.html',
     useShadowDom: false
 )
 class ModerateComponent {

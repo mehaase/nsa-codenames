@@ -1,9 +1,9 @@
 name: nsa_codenames
-version: 0.1.0
+version: 1.0.0
 dependencies:
-    angular: "1.0.0"
+    angular: any
     bootjack: any
-    browser: ">=0.10.0+2 <0.11.0"
-    web_components: ">=0.8.0 <0.9.0"
+    browser: any
+    web_components: any
 transformers:
 - angular

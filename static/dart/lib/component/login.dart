@@ -8,7 +8,7 @@ import 'package:nsa_codenames/authentication.dart';
 
 @Component(
     selector: 'login',
-    templateUrl: '/static/dart/web/packages/nsa_codenames/component/login.html',
+    templateUrl: 'packages/nsa_codenames/component/login.html',
     useShadowDom: false
 )
 class LoginComponent {

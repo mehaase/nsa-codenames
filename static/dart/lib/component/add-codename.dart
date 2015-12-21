@@ -7,7 +7,7 @@ import 'package:nsa_codenames/authentication.dart';
 
 @Component(
     selector: 'add-codename',
-    templateUrl: '/static/dart/web/packages/nsa_codenames/component/add-codename.html',
+    templateUrl: 'packages/nsa_codenames/component/add-codename.html',
     useShadowDom: false
 )
 class AddCodenameComponent {

@@ -7,7 +7,7 @@ import 'package:nsa_codenames/model/codename-result.dart';
 
 @Component(
     selector: 'search',
-    templateUrl: '/static/dart/web/packages/nsa_codenames/component/search.html',
+    templateUrl: 'packages/nsa_codenames/component/search.html',
     useShadowDom: false
 )
 class SearchComponent {

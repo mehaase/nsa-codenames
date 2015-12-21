@@ -1,6 +1,7 @@
 apache2
 curl
 libapache2-mod-wsgi-py3
+libjpeg-dev
 mariadb-server
 node
 node-less

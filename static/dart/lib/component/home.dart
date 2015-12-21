@@ -8,7 +8,7 @@ import 'package:nsa_codenames/authentication.dart';
 
 @Component(
     selector: 'home',
-    templateUrl: '/static/dart/web/packages/nsa_codenames/component/home.html',
+    templateUrl: 'packages/nsa_codenames/component/home.html',
     useShadowDom: false
 )
 class HomeComponent {
@@ -17,7 +17,10 @@ class HomeComponent {
     String markdown;
 
     HomeComponent(this.auth) {
-        HttpRequest.request('/api/content/home', requestHeaders:{'Accept': 'application/json'}).then((request) {
+        String url = '/api/content/home';
+        Map headers = {'Accept': 'application/json'};
+
+        HttpRequest.request(url, requestHeaders:headers).then((request) {
             Map json = JSON.decode(request.response);
             this.markdown = json['markdown'];
         });
@@ -27,7 +30,11 @@ class HomeComponent {
         return HttpRequest.request(
             '/api/content/home',
             method: 'PUT',
-            requestHeaders: {'Auth': auth.token, 'Content-Type': 'application/json', 'Accept': 'application/json'},
+            requestHeaders: {
+                'Auth': auth.token,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
             sendData: JSON.encode({'markdown': this.markdown})
         );
     }

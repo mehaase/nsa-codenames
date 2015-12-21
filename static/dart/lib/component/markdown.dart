@@ -4,7 +4,7 @@ import 'package:angular/angular.dart';
 
 @Component(
     selector: 'markdown',
-    templateUrl: '/static/dart/web/packages/nsa_codenames/component/markdown.html',
+    templateUrl: 'packages/nsa_codenames/component/markdown.html',
     useShadowDom: false
 )
 class MarkdownComponent implements ScopeAware {

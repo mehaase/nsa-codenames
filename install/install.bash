@@ -12,12 +12,14 @@ export ROOT_PATH=/opt/nsa-codenames
 
 # Security setup.
 useradd -m nsa_codenames
-chsh nsa_codenames -s /bin/false
+chsh nsa_codenames -s /usr/sbin/nologin
 passwd -l nsa_codenames
 mkdir -p $ROOT_PATH/static/.webassets-cache
 chown -R nsa_codenames:nsa_codenames \
          $ROOT_PATH/data \
          $ROOT_PATH/static/combined $ROOT_PATH/static/.webassets-cache
+
+cp $ROOT_PATH/conf/local.ini.template $ROOT_PATH/conf/local.ini
 flask_key=`cat /dev/urandom | head -c 30 | base64`
 sed --in-place "s:##FLASK_SECRET_KEY##:$flask_key:" $ROOT_PATH/conf/local.ini
 

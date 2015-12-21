@@ -8,6 +8,13 @@ class RunServerCli(cli.BaseCli):
         """ Customize arguments. """
 
         arg_parser.add_argument(
+            '--debug',
+            action='store_true',
+            help='Enable debug mode: errors produce stack traces and' \
+                 ' the server auto reloads on source code changes.'
+        )
+
+        arg_parser.add_argument(
             '--debug-db',
             action='store_true',
             help='Print SQL queries.'
@@ -22,7 +29,7 @@ class RunServerCli(cli.BaseCli):
     def _run(self, args, config):
         """ Main entry point. """
 
-        flask_app = app.bootstrap(debug=args.debug, debug_db=args.debug_db)
+        flask_app = app.bootstrap(debug=True, debug_db=args.debug_db)
 
         # Disable secure cookies for the development server.
         flask_app.config["SESSION_COOKIE_SECURE"] = False

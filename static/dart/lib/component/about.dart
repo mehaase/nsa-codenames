@@ -8,7 +8,7 @@ import 'package:nsa_codenames/authentication.dart';
 
 @Component(
     selector: 'about',
-    templateUrl: '/static/dart/web/packages/nsa_codenames/component/about.html',
+    templateUrl: 'packages/nsa_codenames/component/about.html',
     useShadowDom: false
 )
 class AboutComponent {
