@@ -30,7 +30,7 @@ class BackupCli(cli.BaseCli):
             'mysqldump',
             '-u',
             config['super_username'],
-            config['schema'],
+            config['database'],
         ]
 
         mysqldump = subprocess.Popen(
@@ -67,12 +67,12 @@ class BackupCli(cli.BaseCli):
 
         bucket = Bucket(connection=s3, name=aws_config['backup_bucket'])
 
-        self._logger.info('Dumping database "{}"'.format(db_config['schema']))
+        self._logger.info('Dumping database "{}"'.format(db_config['database']))
 
         try:
             with open(mysql_path, 'w+') as mysql_backup:
                 msg = 'Dumping database "{}" to {}'
-                self._logger.info(msg.format(db_config['schema'], data_dir))
+                self._logger.info(msg.format(db_config['database'], data_dir))
                 self._dump_mysql(db_config, mysql_backup)
 
             with tempfile.TemporaryFile('wb+') as tar_temp, \

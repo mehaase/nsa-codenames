@@ -40,4 +40,4 @@ class UserCli(cli.BaseCli):
 
         session.commit()
 
-        self.info('User "%s" is admin: %s' % (args.user, user.is_admin))
+        self._logger.info('User "%s" is admin: %s' % (args.user, user.is_admin))

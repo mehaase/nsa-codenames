@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker
 _engine = None
 _sessionmaker = None
 
+
 def get_engine(config, super_user=False):
     '''
     Get a SQLAlchemy engine from a configuration object.
@@ -16,12 +17,11 @@ def get_engine(config, super_user=False):
 
     if _engine is None:
         if super_user:
-            connect_string = 'postgresql+psycopg2://%(super_username)s' \
-                             ':%(super_password)s@%(host)s/%(database)s?' \
-                             'client_encoding=utf8'
+            connect_string = 'mysql+pymysql://%(super_username)s' \
+                             ':%(super_password)s@%(host)s/%(database)s?'
         else:
-            connect_string = 'postgresql+psycopg2://%(username)s:%(password)s' \
-                             '@%(host)s/%(database)s?client_encoding=utf8'
+            connect_string = 'mysql+pymysql://%(username)s:%(password)s' \
+                             '@%(host)s/%(database)s'
 
         _engine = sqlalchemy.create_engine(
             connect_string % config,
@@ -29,6 +29,7 @@ def get_engine(config, super_user=False):
         )
 
     return _engine
+
 
 def get_session(engine):
     ''' Get a SQLAlchemy session. '''

@@ -1,5 +1,3 @@
-""" The main application package. """
-
 from flask import Flask, g, jsonify, make_response, request
 from flask.ext.assets import Environment, Bundle
 from flask_failsafe import failsafe
@@ -8,7 +6,9 @@ from itsdangerous import Signer
 import app.config
 import app.database
 
+
 flask_app = None
+
 
 class MyFlask(Flask):
     """
@@ -27,6 +27,7 @@ class MyFlask(Flask):
         "comment_start_string": "[#",
         "comment_end_string":   "#]",
     })
+
 
 @failsafe
 def bootstrap(debug=False, debug_db=False):
@@ -56,6 +57,7 @@ def bootstrap(debug=False, debug_db=False):
 
     return flask_app
 
+
 def init_errors(flask_app, config):
     ''' Initialize error handlers. '''
 
@@ -83,6 +85,7 @@ def init_errors(flask_app, config):
 
     for http_status_code in http_status_codes:
         flask_app.errorhandler(http_status_code)(http_error_handler)
+
 
 def init_flask(flask_app, config):
     """ Initialize Flask configuration and hooks. """
@@ -115,11 +118,7 @@ def init_flask(flask_app, config):
     def before_request():
         ''' Initialize request context. '''
 
-        engine = app.database.get_engine(
-            dict(config.items('database')),
-            debug=flask_app.debug_db
-        )
-
+        engine = app.database.get_engine(dict(config.items('database')))
         g.db = app.database.get_session(engine)
         g.config = config
 
@@ -128,6 +127,43 @@ def init_flask(flask_app, config):
         g.unsign = signer.unsign
 
         g.debug = flask_app.debug
+
+
+def init_logging(flask_app, config):
+    """
+    Set up logging.
+
+    Flask automatically writes to stderr in debug mode, so we only configure
+    the Flask log in production mode.
+    """
+
+    log_string_format = '%(asctime)s [%(name)s] %(levelname)s: %(message)s'
+    log_date_format = '%Y-%m-%d %H:%M:%S'
+    log_formatter = logging.Formatter(log_string_format, log_date_format)
+
+    try:
+        log_level = getattr(logging, config.get('logging', 'log_level').upper())
+    except AttributeError:
+        raise ValueError("Invalid log level: %s" % log_level)
+
+    if not flask_app.debug:
+        log_file = config.get('logging', 'log_file')
+        log_handler = logging.FileHandler(log_file)
+        log_handler.setLevel(log_level)
+        log_handler.setFormatter(log_formatter)
+
+        flask_app.logger.addHandler(log_handler)
+
+    if flask_app.debug_db:
+        # SQL Alchemy logging is very verbose and is only turned on when
+        # explicitly asked for.
+        db_log_handler = logging.StreamHandler(sys.stderr)
+        db_log_handler.setFormatter(log_formatter)
+
+        db_logger = logging.getLogger('sqlalchemy.engine')
+        db_logger.setLevel(logging.INFO)
+        db_logger.addHandler(db_log_handler)
+
 
 def init_views(flask_app, config):
     """ Initialize views. """
@@ -148,6 +184,7 @@ def init_views(flask_app, config):
     UserView.register(flask_app, route_base='/api/user')
 
     import app.views.angular
+
 
 def init_webassets(flask_app, config):
     """ Initialize Flask-Assets extension. """

@@ -42,14 +42,8 @@ class BaseCli:
     def error(self):
         ''' Print an error message to stderr and then quit. '''
 
-        self.info(message, sys.stderr)
+        self._logger.error(message)
         sys.exit(1)
-
-    def info(self, message, file_=sys.stdout):
-        ''' Print an informational message to stdout (or another file). '''
-
-        now = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
-        file_.write('[%s] %s\n' % (now, message))
 
     def run(self):
         """ The main entry point for all scripts. """

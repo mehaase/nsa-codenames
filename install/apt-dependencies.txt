@@ -1,14 +1,9 @@
-# deps
 apache2
+curl
 libapache2-mod-wsgi-py3
 mariadb-server
 node
 node-less
 npm
 python3-pip
-
-# build deps
-curl
-git
-python-dev
 unzip

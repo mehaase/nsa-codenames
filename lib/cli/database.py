@@ -1,9 +1,13 @@
 from textwrap import dedent
 
+from sqlalchemy.engine import reflection
+from sqlalchemy.schema import DropConstraint, DropTable, ForeignKeyConstraint, \
+                              MetaData, Table
+
+import app.database
 import cli
 from model import Base, Codename, Content, Image, Reference
 
-import app.database
 
 class DatabaseCli(cli.BaseCli):
     ''' A tool for initializing the database. '''
@@ -92,6 +96,49 @@ class DatabaseCli(cli.BaseCli):
 
         session.commit()
 
+    def _drop_all(self):
+        '''
+        Drop database tables, foreign keys, etc.
+
+        Unlike SQL Alchemy's built-in drop_all() method, this one shouldn't
+        punk out if the Python schema doesn't match the actual database schema
+        (a common scenario while developing).
+
+        See: https://bitbucket.org/zzzeek/sqlalchemy/wiki/UsageRecipes/DropEverything
+        '''
+
+        tables = list()
+        all_fks = list()
+        metadata = MetaData()
+        inspector = reflection.Inspector.from_engine(self._db)
+
+        for table_name in inspector.get_table_names():
+            fks = list()
+
+            for fk in inspector.get_foreign_keys(table_name):
+                if not fk['name']:
+                    continue
+                fks.append(ForeignKeyConstraint((),(),name=fk['name']))
+
+            tables.append(Table(table_name, metadata, *fks))
+            all_fks.extend(fks)
+
+        for fk in all_fks:
+            try:
+                self._db.execute(DropConstraint(fk))
+            except Exception as e:
+                self._logger.warn('Not able to drop FK "%s".' % fk.name)
+                self._logger.debug(str(e))
+
+        for table in tables:
+            try:
+                self._db.execute(DropTable(table))
+            except Exception as e:
+                self._logger.warn('Not able to drop table "%s".' % table.name)
+                self._logger.debug(str(e))
+
+        self._session.commit()
+
     def _get_args(self, arg_parser):
         ''' Customize arguments. '''
 
@@ -125,19 +172,20 @@ class DatabaseCli(cli.BaseCli):
             db_logger.addHandler(self._log_handler)
 
         database_config = dict(config.items('database'))
-        self._db = app.database.get_engine(database_config, superuser=True)
+        self._db = app.database.get_engine(database_config, super_user=True)
+        self._session = app.database.get_session(self._db)
 
         if args.action in ('build', 'drop'):
             self._logger.info('Dropping database tables.')
             self._drop_all()
 
         if args.action == 'build':
-            self.info('Creating database tables.')
+            self._logger.info('Creating database tables.')
             Base.metadata.create_all(self._db)
 
-            self.info('Creating fixture data.')
+            self._logger.info('Creating fixture data.')
             self._create_fixture_data()
 
         if args.sample_data:
-            self.info('Creating sample data.')
+            self._logger.info('Creating sample data.')
             self._create_sample_data()
