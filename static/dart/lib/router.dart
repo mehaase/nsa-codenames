@@ -50,6 +50,7 @@ class NsaCodenamesRouteInitializer implements Function {
             ),
             'search': ngRoute(
                 path: '/search',
+                dontLeaveOnParamChanges: true,
                 viewHtml: '<search></search>'
             ),
         });

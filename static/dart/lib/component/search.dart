@@ -4,6 +4,7 @@ import 'dart:html';
 
 import 'package:angular/angular.dart';
 import 'package:nsa_codenames/model/codename-result.dart';
+import 'package:nsa_codenames/query_watcher.dart';
 
 @Component(
     selector: 'search',
@@ -11,14 +12,25 @@ import 'package:nsa_codenames/model/codename-result.dart';
     useShadowDom: false
 )
 class SearchComponent {
-    String query, lastQuery;
+    String lastQuery, nextQuery;
     List<CodenameResult> results;
     Timer delay;
+    bool loading = false;
     String status = 'noQuery';
     bool showSpinner;
 
-    SearchComponent() {
-        results = new List<CodenameResult>();
+    QueryWatcher _queryWatcher;
+    Router _router;
+    RouteProvider _rp;
+
+    SearchComponent(this._router, this._rp) {
+        this._queryWatcher = new QueryWatcher(
+            this._rp.route.newHandle(),
+            ['q'],
+            this._fetchResults
+        );
+
+        this._fetchResults();
     }
 
     void handleKeypress(KeyboardEvent ke) {
@@ -28,34 +40,50 @@ class SearchComponent {
 
         if (ke.target.value.trim() == '') {
             this.status = 'noQuery';
+        } else if (nextQuery == lastQuery) {
+            this.loading = false;
+        } else if (nextQuery != lastQuery) {
+            this.loading = true;
+            delay = new Timer(new Duration(milliseconds: 500), search);
         }
-
-        delay = new Timer(new Duration(milliseconds: 500), search);
     }
 
     void search() {
-        if (query.trim() != '') {
-            String url = '/api/codename/search?q=' + this.query;
-            HttpRequest.request(url, requestHeaders:{'Accept': 'application/json'}).then(this.onDataLoaded);
-            this.showSpinner = true;
-        }
+        this._router.go('search', {}, queryParameters: {'q': this.nextQuery});
     }
 
-    void onDataLoaded(String request) {
-        this.showSpinner = false;
-        Map searchResults = JSON.decode(request.response);
-        results.clear();
+    void _fetchResults() {
+        results = new List<CodenameResult>();
+        String query = this._queryWatcher['q'];
 
-        if (searchResults['codenames'].length == 0) {
-            this.status = 'queryHasNoResults';
-        } else {
-            this.status = 'queryHasResults';
+        if (query == null || query.trim() == '') {
+            this.loading = false;
+            return;
         }
 
-        lastQuery = query;
+        Map headers = {'Accept': 'application/json'};
 
-        for (var codename_json in searchResults['codenames']) {
-            results.add(new CodenameResult(codename_json));
-        }
+        String url = '/api/codename/search?q=' + query;
+        HttpRequest
+            .request(url, requestHeaders:headers)
+            .then((request) {
+                Map searchResults = JSON.decode(request.response);
+                results.clear();
+
+                if (searchResults['codenames'].length == 0) {
+                    this.status = 'queryHasNoResults';
+                } else {
+                    this.status = 'queryHasResults';
+                }
+
+                this.lastQuery = query;
+
+                for (var codename_json in searchResults['codenames']) {
+                    results.add(new CodenameResult(codename_json));
+                }
+            })
+            .whenComplete(() {
+                this.loading = false;
+            });
     }
 }
