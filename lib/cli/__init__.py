@@ -5,6 +5,11 @@ import sys
 
 import app.config
 
+
+class CliError(Exception):
+    ''' A generic error for aborting CLI scripts. '''
+
+
 class BaseCli:
     """ Base class for CLI scripts. """
 
@@ -48,7 +53,11 @@ class BaseCli:
     def run(self):
         """ The main entry point for all scripts. """
 
-        self._run(self.get_args(), app.config.get_config())
+        try:
+            self._run(self.get_args(), app.config.get_config())
+        except  CliError as e:
+            self._logger.error(str(e))
+            sys.exit(1)
 
     def _get_args(self, arg_parser):
         """

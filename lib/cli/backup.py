@@ -16,10 +16,6 @@ import app.database
 import cli
 
 
-class BackupError(Exception):
-    pass
-
-
 class BackupCli(cli.BaseCli):
     ''' Backup database and data directory. '''
 
@@ -42,7 +38,7 @@ class BackupCli(cli.BaseCli):
         mysqldump.wait()
 
         if mysqldump.returncode != 0:
-            raise BackupError('Failed to dump MySQL database!')
+            raise cli.CliError('Failed to dump MySQL database!')
 
 
     def _run(self, args, config):
@@ -77,7 +73,7 @@ class BackupCli(cli.BaseCli):
                  tarfile.open(fileobj=tar_temp, mode='w:gz') as tarball:
 
                 self._logger.info('Backing up {}'.format(data_dir))
-                tarball.add(data_dir)
+                tarball.add(data_dir, arcname='data')
                 tarball.close()
                 tar_temp.flush()
                 tar_temp.seek(0)
@@ -87,10 +83,6 @@ class BackupCli(cli.BaseCli):
                 s3_file.key = s3_path
                 headers = {'Content-Type': 'application/x-gzip'}
                 s3_file.set_contents_from_file(tar_temp, headers=headers)
-
-        except BackupError as be:
-            self._logger.error(str(be))
-            sys.exit(1)
 
         finally:
             try:
