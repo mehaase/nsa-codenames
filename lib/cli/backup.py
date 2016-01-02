@@ -73,17 +73,19 @@ class BackupCli(cli.BaseCli):
                 self._logger.info(msg.format(db_config['database'], data_dir))
                 self._dump_mysql(db_config, mysql_backup)
 
-            with tempfile.TemporaryFile('wb+') as tar_temp, \
+            with tempfile.NamedTemporaryFile('wb+') as tar_temp, \
                  tarfile.open(fileobj=tar_temp, mode='w:gz') as tarball:
 
                 self._logger.info('Backing up {}'.format(data_dir))
                 tarball.add(data_dir)
+                tarball.close()
+                tar_temp.flush()
+                tar_temp.seek(0)
 
                 self._logger.info('Saving "{}" to S3.'.format(s3_path))
                 s3_file = Key(bucket)
                 s3_file.key = s3_path
                 headers = {'Content-Type': 'application/x-gzip'}
-                tar_temp.seek(0, os.SEEK_SET)
                 s3_file.set_contents_from_file(tar_temp, headers=headers)
 
         except BackupError as be:

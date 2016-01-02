@@ -1,1 +1,1 @@
-0 0 * * * root python3 /opt/nsa_codenames/bin/backup.py
+0 0 * * * root python3 /opt/nsa-codenames/bin/backup.py
