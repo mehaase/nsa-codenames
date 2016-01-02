@@ -24,4 +24,22 @@
   </p>
 </div>
 
-<codename-result ng-repeat='codename in results' codename='codename'></codename-result>
+<table class='codename-list'>
+  <tbody>
+    <tr ng-repeat="codename in results">
+      <td>
+        <a href="/{{codename.slug}}">
+          <img ng-src='{{codename.thumbUrl}}'>
+        </a>
+      </td>
+      <td>
+        <p>
+          <a href="/{{codename.slug}}">{{codename.name}}</a>
+          <markdown text='codename.summary' editable='false'>
+          </markdown>
+        </p>
+      </p>
+      </td>
+    </tr>
+  </tbody>
+</table>

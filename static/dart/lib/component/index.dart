@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:html';
 
 import 'package:angular/angular.dart';
-
 import 'package:nsa_codenames/model/codename-result.dart';
 
 @Component(
@@ -11,37 +10,48 @@ import 'package:nsa_codenames/model/codename-result.dart';
     useShadowDom: false
 )
 class IndexComponent {
+    List<CodenameResult> codenames;
+    num count;
     List<String> letters;
-    Map<String, List<CodenameResult>> codenamesByInitial;
+    String page;
+    QueryWatcher queryWatcher;
 
-    IndexComponent() {
+    final RouteProvider _rp;
+
+    IndexComponent(this._rp) {
         this.letters = new List<String>.generate(
             26,
             (int index) => new String.fromCharCode(index + 0x41)
         );
 
-        this.codenamesByInitial = new Map.fromIterable(
-            letters,
-            key: (item) => item,
-            value: (item) => new List<String>()
-        );
+        RouteHandle rh = this._rp.route.newHandle();
 
-        HttpRequest.request('/api/codename/', requestHeaders:{'Accept': 'application/json'}).then((request) {
-            Map json = JSON.decode(request.response);
-
-            for (Map codenameJson in json['codenames']) {
-                String initial = codenameJson['name'].substring(0, 1)
-                                                     .toUpperCase();
-
-                this.codenamesByInitial[initial].add(
-                    new CodenameResult(codenameJson)
-                );
-            }
+        // Listen for new routes.
+        StreamSubscription subscription = rh.onEnter.listen((e) {
+            this._fetchCurrentPage();
         });
+
+        // Clean up the event listener when we leave the route.
+        rh.onLeave.take(1).listen((_) {
+            subscription.cancel();
+        });
+
+        this._fetchCurrentPage();
     }
 
-    void scroll(String letter) {
-        var element = querySelector("#" + letter);
-        element.scrollIntoView(ScrollAlignment.TOP);
+    void _fetchCurrentPage() {
+        this.page = Uri.decodeComponent(this._rp.parameters['page']);
+        String url = '/api/codename?page=${this.page}';
+        Map headers = {'Accept': 'application/json'};
+
+        HttpRequest.request(url, requestHeaders:headers).then((request) {
+            Map json = JSON.decode(request.response);
+            this.count = json['count'];
+
+            this.codenames = new List<CodenameResult>.generate(
+                json['codenames'].length,
+                (index) => new CodenameResult(json['codenames'][index])
+            );
+        });
     }
 }

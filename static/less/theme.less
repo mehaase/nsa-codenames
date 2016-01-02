@@ -77,6 +77,16 @@ textarea {
   }
 }
 
+table.codename-list {
+  td {
+    padding-bottom: 1em;
+
+    &:last-child {
+      padding-left: 1em;
+    }
+  }
+}
+
 // Progess Bars ===============================================================
 
 button {
@@ -200,6 +210,24 @@ codename {
 
     li:hover button {
       visibility: visible;
+    }
+  }
+}
+
+// Index ======================================================================
+
+index {
+  table.index {
+    margin: 1em auto;
+
+    td {
+      border-right: 1px solid @gray-light;
+      text-align: center;
+      width: 2em;
+
+      &:last-child {
+        border-right: none;
+      }
     }
   }
 }

@@ -1,15 +1,41 @@
-<p id="index">
-  <span ng-repeat="letter in letters">
-    <a ng-click="scroll(letter)">{{letter}}</a>&nbsp;
-    <span ng-if="$index!=12 && !$last">|&nbsp;</span>
-    <br ng-if="$index==12">
-  </span>
-</p>
-<div ng-repeat="letter in letters">
-  <h2 id="{{letter}}">{{letter}}</h2>
-  <ul>
-    <li ng-repeat="codename in codenamesByInitial[letter]">
-      <a href="/{{codename.slug}}">{{codename.name}}</a>
-    </li>
-  </ul>
+<table class='index'>
+  <tbody>
+    <tr>
+      <td ng-repeat='letter in letters.sublist(0,13)'>
+        <a href='/index/{{letter.toLowerCase()}}'>{{letter}}</a>
+      </td>
+    </tr>
+    <tr>
+      <td ng-repeat='letter in letters.sublist(13,26)'>
+        <a href='/index/{{letter.toLowerCase()}}'>{{letter}}</a>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<div class='alert alert-danger'
+     ng-show='codenames != null && codenames.length == 0'>
+  <p>
+    There are no codenames beginning with {{page.toUpperCase()}}.
+  </p>
 </div>
+
+<table class='codename-list'>
+  <tbody>
+    <tr ng-repeat='codename in codenames'>
+      <td>
+        <a href='/{{codename.slug}}'>
+          <img ng-src='{{codename.thumbUrl}}'>
+        </a>
+      </td>
+      <td>
+        <p>
+          <a href='/{{codename.slug}}'>{{codename.name}}</a>
+          <markdown text='codename.summary' editable='false'>
+          </markdown>
+        </p>
+      </p>
+      </td>
+    </tr>
+  </tbody>
+</table>

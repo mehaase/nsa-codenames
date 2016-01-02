@@ -34,7 +34,8 @@ class NsaCodenamesRouteInitializer implements Function {
                 viewHtml: '<home></home>'
             ),
             'index': ngRoute(
-                path: '/index',
+                path: '/index/:page',
+                dontLeaveOnParamChanges: true,
                 viewHtml: '<index></index>'
             ),
             'login': ngRoute(

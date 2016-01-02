@@ -279,15 +279,37 @@ class CodenameView(FlaskView):
 
     @route('/')
     def index(self):
-        ''' List codenames in alphabetical order. '''
+        '''
+        List codenames in alphabetical order.
+
+        The optional `page` query parameter is a single letter: all codenames
+        beginning with that letter are returned.
+        '''
 
         codenames = g.db.query(Codename).order_by(Codename.name)
+        count = codenames.count()
+
+        if 'page' in request.args:
+            page = request.args['page']
+
+            if len(page) > 1:
+                raise BadRequest('`page` must be a single character A-Z or a-z')
+
+            page = page[0].lower()
+            char = ord(page)
+
+            if not 97 <= char <= 122:
+                raise BadRequest('`page` must be a single character A-Z or a-z')
+
+            codenames = codenames.filter(Codename.name.like('{}%'.format(page)))
+
         codenames_json = list()
 
         for codename in codenames:
             codename_json = {
                 'name': codename.name,
                 'slug': codename.slug,
+                'summary': codename.summary,
                 'url': url_for('CodenameView:get', slug=codename.slug)
             }
 
@@ -302,7 +324,7 @@ class CodenameView(FlaskView):
 
             codenames_json.append(codename_json)
 
-        return jsonify(codenames=codenames_json)
+        return jsonify(codenames=codenames_json, count=count)
 
     @route('/', methods=('POST',))
     @admin_required
