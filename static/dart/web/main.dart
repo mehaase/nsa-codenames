@@ -22,6 +22,15 @@ import 'package:nsa_codenames/component/title.dart';
 import 'package:nsa_codenames/decorator/current-route.dart';
 import 'package:nsa_codenames/router.dart';
 
+/// A URI policy that accepts all URIs.
+///
+/// This is used in conjunction with the NodeValidator to allow external
+/// links.
+class WildcardUriPolicy implements UriPolicy {
+    bool allowsUri(uri) => true;
+}
+
+/// Main application component.
 class NsaCodenamesApplication extends Module {
     NsaCodenamesApplication({Level logLevel: Level.OFF}) {
         Logger.root.level = logLevel;
@@ -31,7 +40,7 @@ class NsaCodenamesApplication extends Module {
 
         NodeValidatorBuilder nodeValidator = new NodeValidatorBuilder.common()
             ..allowHtml5()
-            ..allowElement('a', attributes: ['href']);
+            ..allowNavigation(new WildcardUriPolicy());
 
         bind(AboutComponent);
         bind(AddCodenameComponent);
@@ -54,6 +63,7 @@ class NsaCodenamesApplication extends Module {
     }
 }
 
+/// Application entry point.
 void main() {
     // Register Bootjack components.
     Collapse.use();
