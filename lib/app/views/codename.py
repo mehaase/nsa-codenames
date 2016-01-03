@@ -1,5 +1,4 @@
 from datetime import datetime
-import hashlib
 from io import BytesIO
 import os
 
@@ -363,15 +362,12 @@ class CodenameView(FlaskView):
         '''
         Add an image to a codename.
 
-        This only supports image/png and it expects images to be _exactly_
-        720x400 pixels.
+        This only supports image/jpeg or image/png and it expects images
+        to be _exactly_ 720x400 pixels.
         '''
 
         REQUIRED_WIDTH = 720
         REQUIRED_HEIGHT = 400
-
-        THUMB_WIDTH = 144
-        THUMB_HEIGHT = 80
 
         codename = self._get_codename_by_slug(slug)
 
@@ -380,32 +376,17 @@ class CodenameView(FlaskView):
         image = PILImage.open(BytesIO(request.data))
         width, height = image.size
 
-        if content_type.lower() != 'image/png' or image.format != 'PNG':
-                raise BadRequest('Content type must be a valid image/png.')
+        if content_type.lower() not in ('image/jpeg', 'image/png') or \
+           image.format not in ('JPEG', 'PNG'):
+                raise BadRequest('The image must be a valid JPEG or PNG.')
 
         if width != REQUIRED_WIDTH or height != REQUIRED_HEIGHT:
             message = "Images must be exactly %d x %d pixels."
             args = (REQUIRED_WIDTH, REQUIRED_HEIGHT)
             raise BadRequest(message % args)
 
-        # Save the file (if not already present).
-        filename = hashlib.sha1(image.tobytes()).hexdigest() + '.png'
-        dir_ = app.config.get_path('data')
-        path = os.path.join(dir_, filename)
-
-        if not os.path.exists(path):
-            image.save(path)
-
-        # Create and save a thumbnail (if not already present).
-        image.thumbnail((THUMB_WIDTH, THUMB_HEIGHT))
-        thumb_filename = hashlib.sha1(image.tobytes()).hexdigest() + '.png'
-        thumb_path = os.path.join(dir_, thumb_filename)
-
-        if not os.path.exists(thumb_path):
-            image.save(thumb_path)
-
         # Create database object.
-        image_obj = Image(filename, thumb_filename, g.user)
+        image_obj = Image(image, g.user)
         codename.images.append(image_obj)
         g.db.commit()
 

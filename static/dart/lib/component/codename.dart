@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'dart:html';
 
 import 'package:angular/angular.dart';
-
 import 'package:nsa_codenames/authentication.dart';
+import 'package:nsa_codenames/component/title.dart';
 import 'package:nsa_codenames/model/codename.dart';
 import 'package:nsa_codenames/model/image.dart';
 import 'package:nsa_codenames/model/reference.dart';
@@ -18,6 +18,7 @@ class CodenameComponent {
     AuthenticationController auth;
     RouteProvider rp;
     Router router;
+    TitleService ts;
 
     @NgOneWay('codename')
     Codename codename;
@@ -37,7 +38,7 @@ class CodenameComponent {
 
     int currentImageIndex = 0;
 
-    CodenameComponent(this.auth, this.rp, this.router) {
+    CodenameComponent(this.auth, this.rp, this.router, this.ts) {
         this.editable = this.auth.isAdmin();
         this.codenameUrl = '/api/codename/' + this.rp.parameters['slug'];
 
@@ -165,6 +166,7 @@ class CodenameComponent {
             return;
         }
 
+        File file = e.target.files[0];
         Element progress = querySelector('div.progress-bar');
         String url = '/api/codename/' + this.codename.slug + '/images';
         Map headers = {'Auth': auth.token, 'Content-Type': 'image/png'};
@@ -180,7 +182,7 @@ class CodenameComponent {
         request.open('POST', url);
         request.setRequestHeader('Accept', 'application/json');
         request.setRequestHeader('Auth', auth.token);
-        request.setRequestHeader('Content-Type', 'image/png');
+        request.setRequestHeader('Content-Type', file.type);
 
         request.onProgress.listen((event) {
             if (event.lengthComputable) {
@@ -217,7 +219,7 @@ class CodenameComponent {
             });
         });
 
-        request.send(e.target.files[0]);
+        request.send(file);
     }
 
     void forward() {

@@ -1,7 +1,12 @@
+import hashlib
+import os
+
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import relationship
 
+import app.config
 from model import Base
+
 
 image_join_user = Table(
     'image_join_user',
@@ -19,6 +24,11 @@ image_join_user = Table(
         primary_key=True
     )
 )
+
+
+THUMB_WIDTH = 144
+THUMB_HEIGHT = 80
+
 
 class Image(Base):
     '''
@@ -54,11 +64,42 @@ class Image(Base):
         backref='contributed_images'
     )
 
-    def __init__(self, path, thumb_path, contributor):
-        ''' Constructor. '''
+    mime = Column(String(255))
 
-        self.path = path
-        self.thumb_path = thumb_path
+    def __init__(self, image, contributor):
+        '''
+        Constructor.
+
+        This takes a Pillow `image` and a user `contributor`. It saves the
+        image to the data directory and generates a thumbnail (also saved to
+        the data directory).
+        '''
+
+        # Save the file (if not already present).
+        data_dir = app.config.get_path('data')
+        hash_ = hashlib.sha1(image.tobytes()).hexdigest()
+        image_dir = os.path.join(data_dir, hash_[0], hash_[1])
+        image_path = os.path.join(image_dir, hash_[2:])
+        image_rel_path = os.path.join(hash_[0], hash_[1], hash_[2:])
+
+        if not os.path.exists(image_path):
+            os.makedirs(image_dir, exist_ok=True)
+            image.save(image_path, format=image.format)
+
+        # Create and save a thumbnail (if not already present).
+        thumb = image.thumbnail((THUMB_WIDTH, THUMB_HEIGHT))
+        thumb_hash = hashlib.sha1(image.tobytes()).hexdigest()
+        thumb_dir = os.path.join(data_dir, thumb_hash[0], thumb_hash[1])
+        thumb_path = os.path.join(thumb_dir, thumb_hash[2:])
+        thumb_rel_path = os.path.join(thumb_hash[0], thumb_hash[1], thumb_hash[2:])
+
+        if not os.path.exists(thumb_path):
+            os.makedirs(thumb_dir, exist_ok=True)
+            image.save(thumb_path, format=image.format)
+
+        self.path = image_rel_path
+        self.thumb_path = thumb_rel_path
+        self.mime = 'image/jpeg' if image.format == 'JPEG' else 'image/png'
         self.contributor = contributor
         self.votes = 0
         self.approved = False
