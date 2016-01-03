@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:html';
 
 import 'package:angular/angular.dart';
-
 import 'package:nsa_codenames/authentication.dart';
+import 'package:nsa_codenames/component/title.dart';
 import 'package:nsa_codenames/model/moderate-item.dart';
 
 @Component(
@@ -14,8 +14,10 @@ import 'package:nsa_codenames/model/moderate-item.dart';
 class ModerateComponent {
     AuthenticationController auth;
     List<ModerateItem> moderateItems;
+    TitleService ts;
 
-    ModerateComponent(this.auth) {
+    ModerateComponent(this.auth, this.ts) {
+        this.ts.title = 'Moderate';
         this.moderateItems = new List<ModerateItem>();
 
         HttpRequest.request('/api/codename/approval', requestHeaders:{'Accept': 'application/json', 'Auth': auth.token}).then((request) {

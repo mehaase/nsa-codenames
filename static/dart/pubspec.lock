@@ -114,9 +114,11 @@ packages:
     source: hosted
     version: "1.2.1"
   route_hierarchical:
-    description: route_hierarchical
-    source: hosted
-    version: "0.6.2"
+    description:
+      path: "/opt/route.dart"
+      relative: false
+    source: path
+    version: "0.6.1+1"
   smoke:
     description: smoke
     source: hosted

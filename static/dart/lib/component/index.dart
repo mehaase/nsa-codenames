@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:html';
 
 import 'package:angular/angular.dart';
+import 'package:nsa_codenames/component/title.dart';
 import 'package:nsa_codenames/model/codename-result.dart';
 
 @Component(
@@ -15,10 +16,11 @@ class IndexComponent {
     List<String> letters;
     String page;
     QueryWatcher queryWatcher;
+    TitleService ts;
 
     final RouteProvider _rp;
 
-    IndexComponent(this._rp) {
+    IndexComponent(this._rp, this.ts) {
         this.letters = new List<String>.generate(
             26,
             (int index) => new String.fromCharCode(index + 0x41)
@@ -41,6 +43,7 @@ class IndexComponent {
 
     void _fetchCurrentPage() {
         this.page = Uri.decodeComponent(this._rp.parameters['page']);
+        this.ts.title = 'Index: ' + this.page.toUpperCase();
         String url = '/api/codename?page=${this.page}';
         Map headers = {'Accept': 'application/json'};
 

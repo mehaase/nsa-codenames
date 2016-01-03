@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'dart:html';
 
 import 'package:angular/angular.dart';
-
 import 'package:nsa_codenames/authentication.dart';
+import 'package:nsa_codenames/component/title.dart';
 
 @Component(
     selector: 'login',
@@ -21,12 +21,13 @@ class LoginComponent {
     bool showPopupWarning = false;
     bool showUsernamePrompt = false;
     bool showSpinner = false;
+    TitleService ts;
 
     Window _popup;
     Timer _popupTimer;
 
-    LoginComponent(AuthenticationController auth) {
-        this.auth = auth;
+    LoginComponent(this.auth, this.ts) {
+        this.ts.title = 'Log In';
     }
 
     void startTwitter() {

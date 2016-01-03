@@ -5,5 +5,8 @@ dependencies:
     bootjack: any
     browser: any
     web_components: any
+dependency_overrides:
+    route_hierarchical:
+        path: /opt/route.dart
 transformers:
 - angular

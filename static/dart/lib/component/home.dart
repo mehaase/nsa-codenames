@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'dart:html';
 
 import 'package:angular/angular.dart';
-
 import 'package:nsa_codenames/authentication.dart';
+import 'package:nsa_codenames/component/title.dart';
 
 @Component(
     selector: 'home',
@@ -13,10 +13,11 @@ import 'package:nsa_codenames/authentication.dart';
 )
 class HomeComponent {
     AuthenticationController auth;
-
     String markdown;
+    TitleService ts;
 
-    HomeComponent(this.auth) {
+    HomeComponent(this.auth, this.ts) {
+        this.ts.title = 'Home';
         String url = '/api/content/home';
         Map headers = {'Accept': 'application/json'};
 

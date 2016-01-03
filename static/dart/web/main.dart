@@ -4,6 +4,7 @@ import 'package:angular/angular.dart';
 import 'package:angular/application_factory.dart';
 import 'package:bootjack/bootjack.dart';
 import 'package:dquery/dquery.dart';
+import 'package:logging/logging.dart';
 
 import 'package:nsa_codenames/authentication.dart';
 import 'package:nsa_codenames/component/about.dart';
@@ -17,11 +18,17 @@ import 'package:nsa_codenames/component/markdown.dart';
 import 'package:nsa_codenames/component/moderate.dart';
 import 'package:nsa_codenames/component/nav.dart';
 import 'package:nsa_codenames/component/search.dart';
+import 'package:nsa_codenames/component/title.dart';
 import 'package:nsa_codenames/decorator/current-route.dart';
 import 'package:nsa_codenames/router.dart';
 
-class NsaCodenames extends Module {
-    NsaCodenames() {
+class NsaCodenamesApplication extends Module {
+    NsaCodenamesApplication({Level logLevel: Level.OFF}) {
+        Logger.root.level = logLevel;
+        Logger.root.onRecord.listen((LogRecord rec) {
+            print('${rec.time} [${rec.level.name}] ${rec.message}');
+        });
+
         NodeValidatorBuilder nodeValidator = new NodeValidatorBuilder.common()
             ..allowHtml5()
             ..allowElement('a', attributes: ['href']);
@@ -42,6 +49,8 @@ class NsaCodenames extends Module {
         bind(RouteInitializerFn,
              toImplementation: NsaCodenamesRouteInitializer);
         bind(SearchComponent);
+        bind(TitleComponent);
+        bind(TitleService);
     }
 }
 
@@ -53,6 +62,6 @@ void main() {
 
     // Create main application.
     applicationFactory()
-        .addModule(new NsaCodenames())
+        .addModule(new NsaCodenamesApplication())
         .run();
 }

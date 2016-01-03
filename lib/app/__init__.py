@@ -128,6 +128,15 @@ def init_flask(flask_app, config):
 
         g.debug = flask_app.debug
 
+    @flask_app.url_defaults
+    def static_asset_cache_busting(endpoint, values):
+        if endpoint == 'static' and 'filename' in values:
+            filename = values['filename']
+            if filename.startswith('img') or \
+               filename.startswith('fonts'):
+
+                values['version'] = flask_app.config['VERSION']
+
 
 def init_logging(flask_app, config):
     """

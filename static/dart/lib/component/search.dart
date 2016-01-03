@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:html';
 
 import 'package:angular/angular.dart';
+import 'package:nsa_codenames/component/title.dart';
 import 'package:nsa_codenames/model/codename-result.dart';
 import 'package:nsa_codenames/query_watcher.dart';
 
@@ -18,12 +19,15 @@ class SearchComponent {
     bool loading = false;
     String status = 'noQuery';
     bool showSpinner;
+    TitleService ts;
 
     QueryWatcher _queryWatcher;
     Router _router;
     RouteProvider _rp;
 
-    SearchComponent(this._router, this._rp) {
+    SearchComponent(this._router, this._rp, this.ts) {
+        this.ts.title = 'Search';
+
         this._queryWatcher = new QueryWatcher(
             this._rp.route.newHandle(),
             ['q'],
@@ -61,9 +65,10 @@ class SearchComponent {
             return;
         }
 
+        this.ts.title = 'Search "${query}"';
         Map headers = {'Accept': 'application/json'};
-
         String url = '/api/codename/search?q=' + query;
+
         HttpRequest
             .request(url, requestHeaders:headers)
             .then((request) {

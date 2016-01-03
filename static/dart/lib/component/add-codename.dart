@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:html';
 
 import 'package:angular/angular.dart';
-
 import 'package:nsa_codenames/authentication.dart';
+import 'package:nsa_codenames/component/title.dart';
 
 @Component(
     selector: 'add-codename',
@@ -13,11 +13,14 @@ import 'package:nsa_codenames/authentication.dart';
 class AddCodenameComponent {
     AuthenticationController auth;
     Router router;
+    TitleService ts;
 
     String name='', error;
     bool disableButtons = false, showSpinner = false;
 
-    AddCodenameComponent(this.auth, this.router);
+    AddCodenameComponent(this.auth, this.router, this.ts) {
+        this.ts.title = 'Add Codename';
+    }
 
     void saveCodename() {
         this.error = null;
