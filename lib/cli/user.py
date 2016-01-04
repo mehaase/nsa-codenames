@@ -15,6 +15,12 @@ class UserCli(cli.BaseCli):
         )
 
         arg_parser.add_argument(
+            '--debug-db',
+            action='store_true',
+            help='Print database queries.'
+        )
+
+        arg_parser.add_argument(
             'user',
             help='Specify which user to perform the action on.'
         )
@@ -23,7 +29,7 @@ class UserCli(cli.BaseCli):
         """ Main entry point. """
 
         database_config = dict(config.items('database'))
-        engine = app.database.get_engine(database_config, args.debug)
+        engine = app.database.get_engine(database_config, args.debug_db)
         session = app.database.get_session(engine)
 
         user = session.query(User) \
