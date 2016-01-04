@@ -49,6 +49,7 @@ class CodenameComponent {
         ).then((request) {
             Map json = JSON.decode(request.response);
             this.codename = new Codename(json);
+            this.ts.title = this.codename.name;
         });
     }
 
