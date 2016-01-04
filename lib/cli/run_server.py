@@ -29,7 +29,7 @@ class RunServerCli(cli.BaseCli):
     def _run(self, args, config):
         """ Main entry point. """
 
-        flask_app = app.bootstrap(debug=True, debug_db=args.debug_db)
+        flask_app = app.bootstrap(debug=args.debug, debug_db=args.debug_db)
 
         # Disable secure cookies for the development server.
         flask_app.config["SESSION_COOKIE_SECURE"] = False

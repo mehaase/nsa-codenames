@@ -202,14 +202,13 @@ def init_webassets(flask_app, config):
 
     assets = Environment(flask_app)
     assets.debug = flask_app.debug
-
     dart_root = 'dart/web' if flask_app.debug else 'dart/build/web'
 
     assets.register("less",  Bundle(
         "less/bootstrap/bootstrap.less",
         "less/font-awesome/font-awesome.less",
-        filters="less",
-        output="combined/bootstrap.css",
+        filters="less,cssmin",
+        output="combined/combined.css",
         depends="less/*.less"
     ))
 
@@ -221,6 +220,6 @@ def init_webassets(flask_app, config):
         'js/markdown.js',
         dart_root + '/packages/web_components/dart_support.js',
         dart_root + '/packages/browser/dart.js',
-        # filters='jsmin',
+        filters='jsmin',
         output='combined/combined.js'
     ))
